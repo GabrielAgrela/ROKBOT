@@ -20,4 +20,12 @@ Rise of Kingdoms Farming bot
 - You may need to set up de ADB, IDK;
 
 ## WARNING
-I don't know if you can be banned by using this, so use it at  your own risk.
+- I don't know if you can be banned by using this, so use it at  your own risk.
+
+## TODO
+- Dynamic army selection;
+- Dynamic button selection:
+  - Be able to change the emulator's resolution;
+  - Change from fixed pixel position to percentage position;
+- Notification when CAPTCHA pops up;
+- RSS farming bot;
