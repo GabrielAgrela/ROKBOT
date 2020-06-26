@@ -4,9 +4,7 @@ from ppadb.client import Client
 from PIL import Image
 import numpy
 import time
-import time
-import threading
-import webcolors
+import threadings
 
 inReset = False
 inAttack = False
@@ -36,11 +34,11 @@ def reset():
 	device.shell(f'input touchscreen swipe 1747 620 1747 620 100 ') #tap recovered troops
 	time.sleep(1)
 	device.shell(f'input touchscreen swipe 50 950 50 950 200') #tap map
-	
+
 	inReset = False
 	attackFirstTime()
-	
-#Initiated on launched or after troops died	
+
+#Initiated on launched or after troops died
 def attackFirstTime():
 	global inAttack
 	global updateRunning
@@ -66,7 +64,7 @@ def attackFirstTime():
 #if there's a victory, find and attack new barb
 def attack():
 	global inAttack
-	print("preparing attack")	
+	print("preparing attack")
 	inAttack=True
 	device.shell(f'input touchscreen swipe 50 820 50 820 200')#tap magnifying glass
 	device.shell(f'input touchscreen swipe 400 750 400 750 10 ')#tap search button
@@ -110,7 +108,7 @@ def update():
 		reset()
 	if ((image[830][1467][1] >= 168 and image[830][1467][1] <= 175) and (image[830][1467][0] >= 35 and image[830][1467][0] <= 40) and inAttack == False): #if victory notification
 		attack()
-	
+
 attackFirstTime()
 
 time.sleep(1)
