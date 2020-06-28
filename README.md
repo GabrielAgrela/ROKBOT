@@ -15,7 +15,7 @@ Rise of Kingdoms Farming bot
 - This bot has been tested on BlueStacks, on a 1920x1080 screen;
 - To run, double-click the batch file
 - Configure your file locations in the batch file
-- configure your email settings in sendEmail()s
+- Configure your email settings in sendEmail()
 
 ## Troubleshooting
 - Check for the kind of error on the prompt;
