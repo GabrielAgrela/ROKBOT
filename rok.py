@@ -10,6 +10,7 @@ import yagmail
 inReset = False
 inAttack = False
 updateRunning = False
+inEmail = False
 
 xRes = 1920
 yRes = 1080
@@ -22,14 +23,44 @@ if len(devices) == 0:
 
 device = devices[0]
 
+def setMax(color):
+	if(color >= 225):
+		return (255)
+	else:
+		return (color + 25)
+
+def setMin(color):
+	if(color <= 25):
+		return (0)
+	else:
+		return (color - 25)
+
+def checkPixel (yPos, xPos, colorR, colorG, colorB, image):
+	colorRMax = setMax(colorR)
+	colorRMin = setMin(colorR)
+
+	colorGMax = setMax(colorG)
+	colorGMin = setMin(colorG)
+
+	colorBMax = setMax(colorB)
+	colorBMin = setMin(colorB)
+
+
+	if ((image[round(yPos*yRes)][round(xPos*xRes)][0] >= colorRMin and image[round(yPos*yRes)][round(xPos*xRes)][0] <= colorRMax) and (image[round(yPos*yRes)][round(xPos*xRes)][1] >= colorGMin and image[round(yPos*yRes)][round(xPos*xRes)][1] <= colorGMax) and (image[round(yPos*yRes)][round(xPos*xRes)][2] >= colorBMin and image[round(yPos*yRes)][round(xPos*xRes)][2] <= colorBMax)):
+		return True
 
 def sendEmail(msg):
+	global inEmail
+	inEmail = True
 	print ("sending email with ", msg, " as body.")
 	yag = yagmail.SMTP("ithrowthisaway1233321", '123456123456Aa')
 	yag.send("gabrielagrela99@gmail.com", "RISE OF KINGDOMS", msg)
+
 #troops died, need healing
 def reset():
 	global inReset
+	global inEmail
+	inEmail = False
 	print("healing")
 	inReset = True
 	device.shell(f'input touchscreen swipe 50 950 50 950 200')  #tap city
@@ -50,6 +81,8 @@ def reset():
 def attackFirstTime():
 	global inAttack
 	global updateRunning
+	global inEmail
+	inEmail = False
 	print("attacking for the first time")
 	inAttack=True
 	#device.shell(f'kill-server')
@@ -67,9 +100,15 @@ def attackFirstTime():
 	if(updateRunning == False):
 		update()
 
+def help(yPos, xPos):
+	cmd = 'input touchscreen swipe '+ str(round(xPos*xRes))+ ' '+ str(round(yPos*yRes))+' '+ str(round(xPos*xRes))+' '+ str(round(yPos*yRes))+' 1000 '
+	device.shell(cmd)
+
 #if there's a victory, find and attack new barb
 def attack():
 	global inAttack
+	global inEmail
+	inEmail = False
 	print("preparing attack")
 	inAttack=True
 	device.shell(f'input touchscreen swipe 50 820 50 820 200')#tap magnifying glass
@@ -102,6 +141,7 @@ def update():
 	global inAttack
 	global inReset
 	global updateRunning
+	global inEmail
 	updateRunning = True
 	threading.Timer(4.0, update).start() #new thread every 4s
 	image = device.screencap() #take screenshot
@@ -109,8 +149,8 @@ def update():
 		f.write(image)
 	image = Image.open('screen.png')
 	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
-	print ("color of the victory/defeat notification pixel: ", image[830][1467] , " | color of a pixel of the 0AP pop-up: " , image[round(0.8*yRes)][round(0.8*xRes)] , " | color of the position where the CAPTCHA notification pops-up " , image[round(0.1938*yRes)][round(0.8321*xRes)])
-	if (image[round(0.1938*yRes)][round(0.8321*xRes)][0] >= 220 and image[round(0.1938*yRes)][round(0.8321*xRes)][0] <= 255 and image[round(0.1938*yRes)][round(0.8321*xRes)][1] >= 225):
+	print ("\n color of the victory/defeat notification pixel: ", image[830][1467] , " \n color of a pixel of the 0AP pop-up: " , image[round(0.8*yRes)][round(0.8*xRes)] , " \n color of the position where the CAPTCHA notification pops-up " , image[round(0.1938*yRes)][round(0.8321*xRes)] , " \n color of the position where the help notification pops-up " , image[round(0.6343*yRes)][round(0.9804*xRes)] , "\n --------------------------------------------------------------------------")
+	if (checkPixel(0.1938,0.8321,230,230,235,image) == True and inEmail == False):
 		print("CAPTCHA")
 		sendEmail("CAPTCHA verification")
 	elif ((image[round(0.8*yRes)][round(0.8*xRes)][0] >= 0 and image[round(0.8*yRes)][round(0.8*xRes)][0] <= 50) and (image[round(0.8*yRes)][round(0.8*xRes)][1] >= 70 and image[round(0.8*yRes)][round(0.8*xRes)][1] <= 95) and (image[round(0.8*yRes)][round(0.8*xRes)][2] >= 100 and image[round(0.8*yRes)][round(0.8*xRes)][2] <= 125)): #if no action points
@@ -119,7 +159,10 @@ def update():
 		reset()
 	elif ((image[830][1467][1] >= 160 and image[830][1467][1] <= 185) and (image[830][1467][0] >= 35 and image[830][1467][0] <= 80) and inAttack == False): #if victory notification
 		attack()
+	elif (checkPixel(0.6343,0.9804,230,0,0,image) == True):
+		help(0.67,0.96)
 
 attackFirstTime()
+#help(0.67,0.96)
 
 time.sleep(1)
