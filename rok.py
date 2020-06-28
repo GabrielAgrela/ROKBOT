@@ -111,7 +111,7 @@ def update():
 		f.write(image)
 	image = Image.open('screen.png')
 	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
-	print (image[830][1467] , " - " , image[round(0.8*yRes)][round(0.8*xRes)] , " - " , image[round(0.1938*yRes)][round(0.8321*xRes)])
+	print ("color of the victory/defeat notification pixel: ", image[830][1467] , " | color of a pixel of the 0AP pop-up: " , image[round(0.8*yRes)][round(0.8*xRes)] , " | color of the position where the CAPTCHA notification pops-up " , image[round(0.1938*yRes)][round(0.8321*xRes)])
 	if (image[round(0.1938*yRes)][round(0.8321*xRes)][0] >= 220 and image[round(0.1938*yRes)][round(0.8321*xRes)][0] <= 255 and image[round(0.1938*yRes)][round(0.8321*xRes)][1] >= 225):
 		print("CAPTCHA")
 		sendEmail("CAPTCHA verification")
