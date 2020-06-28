@@ -4,9 +4,7 @@ from ppadb.client import Client
 from PIL import Image
 import numpy
 import time
-import time
 import threading
-import webcolors
 import yagmail
 
 inReset = False
