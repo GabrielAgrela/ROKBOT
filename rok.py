@@ -100,8 +100,8 @@ def attackFirstTime():
 	if(updateRunning == False):
 		update()
 
-def help(yPos, xPos):
-	cmd = 'input touchscreen swipe '+ str(round(xPos*xRes))+ ' '+ str(round(yPos*yRes))+' '+ str(round(xPos*xRes))+' '+ str(round(yPos*yRes))+' 1000 '
+def tap (yPos, xPos):
+	cmd = 'input touchscreen swipe '+ str(round(xPos*xRes))+ ' '+ str(round(yPos*yRes))+' '+ str(round(xPos*xRes))+' '+ str(round(yPos*yRes))+' 100 '
 	device.shell(cmd)
 
 #if there's a victory, find and attack new barb
@@ -160,7 +160,7 @@ def update():
 	elif ((image[830][1467][1] >= 160 and image[830][1467][1] <= 185) and (image[830][1467][0] >= 35 and image[830][1467][0] <= 80) and inAttack == False): #if victory notification
 		attack()
 	elif (checkPixel(0.6343,0.9804,230,0,0,image) == True):
-		help(0.67,0.96)
+		tap(0.67,0.96)
 
 attackFirstTime()
 #help(0.67,0.96)
