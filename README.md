@@ -14,6 +14,8 @@ Rise of Kingdoms Farming bot
 - DOES NOT GO TROUGH THE CAPTCHA;
 - This bot has been tested on BlueStacks, on a 1920x1080 screen;
 - To run, double-click the batch file
+- Configure your file locations in the batch file
+- configure your email settings in sendEmail()s
 
 ## Troubleshooting
 - Check for the kind of error on the prompt;
@@ -24,8 +26,8 @@ Rise of Kingdoms Farming bot
 
 ## TODO
 - Dynamic army selection;
-- Dynamic button selection:
+- Dynamic button selection: - PARTIALLY DONE
   - Be able to change the emulator's resolution;
-  - Change from fixed pixel position to percentage position;
-- Notification when CAPTCHA pops up;
+  - Change from fixed pixel position to percentage position; - PARTIALLY DONE
+- Notification when CAPTCHA pops up; - DONE
 - RSS farming bot;
