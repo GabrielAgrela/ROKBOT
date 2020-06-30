@@ -9,7 +9,7 @@ Rise of Kingdoms Farming bot
 
 ## What it does and how this works
 - Only searches for barbarians, and heal army as soon as they lose a battle:
-<img src="/media/defeatExampleExample.gif?raw=true" width="800px">
+<img src="/media/defeatExample.gif?raw=true" width="800px">
 - To choose a barbarian level, search manually for one, selecting the barb's level you want the bot to farm:
 <img src="/media/victoryExample.gif?raw=true" width="800px">
 - The bot will chose the army you saved on the 4th army slot:
