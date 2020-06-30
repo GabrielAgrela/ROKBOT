@@ -6,11 +6,14 @@ import numpy
 import time
 import threading
 import yagmail
+import random
 
 inReset = False
 inAttack = False
 updateRunning = False
 inEmail = False
+
+nHelps = 0
 
 xRes = 1920
 yRes = 1080
@@ -55,6 +58,10 @@ def sendEmail(msg):
 	print ("sending email with ", msg, " as body.")
 	yag = yagmail.SMTP("ithrowthisaway1233321", '123456123456Aa')
 	yag.send("gabrielagrela99@gmail.com", "RISE OF KINGDOMS", msg)
+	sleeptTime = random.randint(0, 9)
+	time.sleep(sleeptTime)
+	device.shell(f'am force-stop com.lilithgame.roc.gp')  #tap city
+
 
 #troops died, need healing
 def reset():
@@ -83,7 +90,7 @@ def attackFirstTime():
 	global updateRunning
 	global inEmail
 	inEmail = False
-	print("attacking for the first time")
+	print(" attacking for the first time")
 	inAttack=True
 	#device.shell(f'kill-server')
 	#time.sleep(5)
@@ -109,7 +116,7 @@ def attack():
 	global inAttack
 	global inEmail
 	inEmail = False
-	print("preparing attack")
+	print(" preparing attack")
 	inAttack=True
 	device.shell(f'input touchscreen swipe 50 820 50 820 200')#tap magnifying glass
 	time.sleep(0.2)
@@ -142,6 +149,7 @@ def update():
 	global inReset
 	global updateRunning
 	global inEmail
+	global nHelps
 	updateRunning = True
 	threading.Timer(4.0, update).start() #new thread every 4s
 	image = device.screencap() #take screenshot
@@ -149,20 +157,24 @@ def update():
 		f.write(image)
 	image = Image.open('screen.png')
 	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
+	print ("\n Helps: ", nHelps)
 	print ("\n color of the victory/defeat notification pixel: ", image[830][1467] , " \n color of a pixel of the 0AP pop-up: " , image[round(0.8*yRes)][round(0.8*xRes)] , " \n color of the position where the CAPTCHA notification pops-up " , image[round(0.1938*yRes)][round(0.8321*xRes)] , " \n color of the position where the help notification pops-up " , image[round(0.6343*yRes)][round(0.9804*xRes)] , "\n --------------------------------------------------------------------------")
 	if (checkPixel(0.1938,0.8321,230,230,235,image) == True and inEmail == False):
-		print("CAPTCHA")
+		print(" I think there's a CAPTCHA")
 		sendEmail("CAPTCHA verification")
 	elif ((image[round(0.8*yRes)][round(0.8*xRes)][0] >= 0 and image[round(0.8*yRes)][round(0.8*xRes)][0] <= 50) and (image[round(0.8*yRes)][round(0.8*xRes)][1] >= 70 and image[round(0.8*yRes)][round(0.8*xRes)][1] <= 95) and (image[round(0.8*yRes)][round(0.8*xRes)][2] >= 100 and image[round(0.8*yRes)][round(0.8*xRes)][2] <= 125)): #if no action points
-		print ("no action points")
+		print (" I think you have no action points")
 	elif ((image[830][1467][0] >= 220 and image[830][1467][0] <= 250) and (image[830][1467][1] >= 190 and image[830][1467][1] <= 225) and inReset == False): #if defeat notification
 		reset()
 	elif ((image[830][1467][1] >= 160 and image[830][1467][1] <= 185) and (image[830][1467][0] >= 35 and image[830][1467][0] <= 80) and inAttack == False): #if victory notification
 		attack()
 	elif (checkPixel(0.6343,0.9804,230,0,0,image) == True):
+		inEmail= False
 		tap(0.67,0.96)
+		nHelps = nHelps + 1
 
-attackFirstTime()
+#attackFirstTime()
 #help(0.67,0.96)
+update()
 
 time.sleep(1)
