@@ -28,8 +28,8 @@ Rise of Kingdoms Farming bot
 
 ## TODO
 - Dynamic army selection;
-- Dynamic button selection: - PARTIALLY DONE
-  - Be able to change the emulator's resolution;
-  - Change from fixed pixel position to percentage position; - PARTIALLY DONE
+- Dynamic button selection: - DONE
+  - Be able to change the emulator's resolution; - DONE
+  - Change from fixed pixel position to percentage position; - DONE
 - Notification when CAPTCHA pops up; - DONE
 - RSS farming bot;
