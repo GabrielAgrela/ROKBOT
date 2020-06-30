@@ -14,6 +14,7 @@ updateRunning = False
 inEmail = False
 
 nHelps = 0
+nIterations = 0
 
 xRes = 1920
 yRes = 1080
@@ -170,15 +171,17 @@ def update():
 	global updateRunning
 	global inEmail
 	global nHelps
+	global nIterations
 	updateRunning = True
 	threading.Timer(4.0, update).start() #new thread every 4s
+	nIterations = nIterations + 1
 	image = device.screencap() #take screenshot
 	with open('screen.png', 'wb') as f: #take screenshot
 		f.write(image)
 	image = Image.open('screen.png')
 	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
 	print("\n ------------------------------------------------------------------------------------")
-	print("\n Iteration number: ")
+	print("\n Iteration number: ", nIterations)
 	print ("\n Helps: ", nHelps)
 	print ("\n New victory cords: ", image[round(0.7597*yRes)][round(0.7979*xRes)], " and ", image[round(0.77*yRes)][round(0.7631*xRes)])
 	print ("\n New deafeat cords: ", image[round(0.7726*yRes)][round(0.7616*xRes)], " and ", image[round(0.7713*yRes)][round(0.8001*xRes)])
