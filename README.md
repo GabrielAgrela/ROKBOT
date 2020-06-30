@@ -8,9 +8,12 @@ Rise of Kingdoms Farming bot
 - Imports: ppadb, PIL, numpy (PIP install these)
 
 ## What it does and how this works
-- Only searches for barbarians, and heal army as soon as they lose a battle: <img src="/media/1.gif?raw=true" width="200px">
-- To choose a barbarian level, search manually for one, selecting the barb's level you want the bot to farm: ![Attacking](https://i.imgur.com/NetEsMt.gif)
-- The bot will chose the army you saved on the 4th army slot: ![Select 4th slot](https://image.prntscr.com/image/8Y7qyWjXSdS-0BE36PPQaw.png)
+- Only searches for barbarians, and heal army as soon as they lose a battle:
+<img src="/media/deafeatExample.gif?raw=true" width="800px">
+- To choose a barbarian level, search manually for one, selecting the barb's level you want the bot to farm:
+<img src="/media/victoryExample.gif?raw=true" width="800px">
+- The bot will chose the army you saved on the 4th army slot: 
+<img src="/media/selectArmyExaple.png?raw=true" width="800px">
 - DOES NOT GO TROUGH THE CAPTCHA;
 - This bot has been tested on BlueStacks, on a 1920x1080 screen;
 - To run, double-click the batch file;
