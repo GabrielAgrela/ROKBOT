@@ -17,7 +17,13 @@ Rise of Kingdoms Farming bot
 - Configure your file locations in the batch file;
 - Configure your email settings in sendEmail();
 - Sends an email when there's a CAPTCHA or when you are out of AP;
-- When an ally asks for help, ROKBOT automatically taps the notification
+- When an ally asks for help, ROKBOT automatically taps the notification<
+- BEEP DEBUG SYSTEM:
+	- beep = help pressed
+	- boop = 1st attack
+	- boop boop = new Attack
+	- boop beep = healing
+	- beep boop beep = sending email
 
 ## Troubleshooting
 - Check for the kind of error on the prompt;

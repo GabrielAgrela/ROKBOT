@@ -7,11 +7,19 @@ import time
 import threading
 import yagmail
 import random
+import winsound
+
+# beep = help pressed
+# boop = 1st attack
+# boop boop = new Attack
+# boop beep = healing
+# beep boop beep = sending email
 
 inReset = False
 inAttack = False
 updateRunning = False
 inEmail = False
+inTap = False
 
 nHelps = 0
 nIterations = 0
@@ -61,6 +69,11 @@ def sendEmail(msg):
 	global inEmail
 	inEmail = True
 	print ("sending email with ", msg, " as body.")
+	winsound.Beep(2500, 200)
+	time.sleep(0.1)
+	winsound.Beep(500, 200)
+	time.sleep(0.1)
+	winsound.Beep(2500, 200)
 	yag = yagmail.SMTP("ithrowthisaway1233321", '123456123456Aa')
 	yag.send("gabrielagrela99@gmail.com", "RISE OF KINGDOMS", msg)
 	sleeptTime = random.randint(0, 90)
@@ -86,8 +99,10 @@ def checkHopital():
 def reset():
 	global inReset
 	global inEmail
-	inEmail = False
 	print("healing")
+	winsound.Beep(500, 200)
+	time.sleep(0.1)
+	winsound.Beep(2500, 200)
 	inReset = True
 	device.shell(f'input touchscreen swipe 50 950 50 950 200')  #tap city
 	time.sleep(0.5)
@@ -109,8 +124,9 @@ def attackFirstTime():
 	global inAttack
 	global updateRunning
 	global inEmail
-	inEmail = False
 	print(" attacking for the first time")
+	winsound.Beep(500, 200)
+	time.sleep(0.1)
 	inAttack=True
 	#device.shell(f'kill-server')
 	#time.sleep(5)
@@ -119,7 +135,9 @@ def attackFirstTime():
 	time.sleep(1)
 	device.shell(f'input touchscreen swipe 960 540 960 540 100 ') #tap barb
 	device.shell(f'input touchscreen swipe 1380 723 1380 723 100 ') #tap attack button
+	time.sleep(0.2)
 	device.shell(f'input touchscreen swipe 1630 215 1630 215 100 ') #tap new troops button
+	time.sleep(0.2)
 	device.shell(f'input touchscreen swipe 1651 745 1651 745 100 ') #tap button "4" (troops i want to select)
 	time.sleep(0.2)
 	device.shell(f'input touchscreen swipe 1440 920 1440 920 100 ') #tap march button
@@ -129,24 +147,32 @@ def attackFirstTime():
 
 #Dynamic tap
 def tap (yPos, xPos):
+	global inTap
+	inTap = True
+	winsound.Beep(2500, 200)
 	cmd = 'input touchscreen swipe '+ str(round(xPos*xRes))+ ' '+ str(round(yPos*yRes))+' '+ str(round(xPos*xRes))+' '+ str(round(yPos*yRes))+' 100 '
 	device.shell(cmd)
+	inTap = False
 
 #if there's a victory, find and attack new barb
 def attack():
 	global inAttack
 	global inEmail
-	inEmail = False
 	print(" preparing attack")
+	winsound.Beep(500, 200)
+	time.sleep(0.1)
+	winsound.Beep(500, 200)
 	inAttack=True
 	device.shell(f'input touchscreen swipe 50 820 50 820 200')#tap magnifying glass
 	time.sleep(0.2)
 	device.shell(f'input touchscreen swipe 400 750 400 750 10 ')#tap search button
 	time.sleep(1)
 	device.shell(f'input touchscreen swipe 960 540 960 540 100 ')#tap barb
-	time.sleep(0.1)
+	time.sleep(0.2)
 	device.shell(f'input touchscreen swipe 1380 723 1380 723 100 ')#tap attack button
+	time.sleep(0.2)
 	device.shell(f'input touchscreen swipe 1830 320 1830 320 100 ') #tap army i want
+	time.sleep(0.2)
 	device.shell(f'input touchscreen swipe 1530 460 1530 460 100 ') #tap march button
 	inAttack=False
 
@@ -170,10 +196,11 @@ def update():
 	global inReset
 	global updateRunning
 	global inEmail
+	global inTap
 	global nHelps
 	global nIterations
 	updateRunning = True
-	threading.Timer(4.0, update).start() #new thread every 4s
+	threading.Timer(2.0, update).start() #new thread every 4s
 	nIterations = nIterations + 1
 	image = device.screencap() #take screenshot
 	with open('screen.png', 'wb') as f: #take screenshot
@@ -198,8 +225,7 @@ def update():
 		reset()
 	elif (checkPixel(0.7597,0.7979,27,169,49,image) == True and checkPixel(0.77,0.7631,8,162,33,image) == True and inAttack == False): #if victory notification
 		attack()
-	elif (checkPixel(0.6343,0.9804,230,0,0,image) == True): #if theres a alliance help request
-		inEmail = False
+	elif (checkPixel(0.6343,0.9804,230,0,0,image) == True and inTap == False): #if theres a alliance help request
 		tap(0.67,0.96)
 		nHelps = nHelps + 1
 
