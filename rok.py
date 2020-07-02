@@ -76,9 +76,10 @@ def sendEmail(msg):
 	winsound.Beep(2500, 200)
 	yag = yagmail.SMTP("ithrowthisaway1233321", '123456123456Aa')
 	yag.send("gabrielagrela99@gmail.com", "RISE OF KINGDOMS", msg)
-	sleeptTime = random.randint(0, 90)
-	time.sleep(sleeptTime)
-	#device.shell(f'am force-stop com.lilithgame.roc.gp')  #tap city
+	#sleeptTime = random.randint(0, 90)
+	#time.sleep(sleeptTime)
+	#device.shell(f'am force-stop com.lilithgame.roc.gp')  #turn off ROK
+	return
 
 # check if troops are healed
 def checkHopital():
@@ -151,7 +152,9 @@ def tap (yPos, xPos):
 	inTap = True
 	winsound.Beep(2500, 200)
 	cmd = 'input touchscreen swipe '+ str(round(xPos*xRes))+ ' '+ str(round(yPos*yRes))+' '+ str(round(xPos*xRes))+' '+ str(round(yPos*yRes))+' 100 '
+	print (cmd)
 	device.shell(cmd)
+	time.sleep(1)
 	inTap = False
 
 #if there's a victory, find and attack new barb
@@ -164,15 +167,15 @@ def attack():
 	winsound.Beep(500, 200)
 	inAttack=True
 	device.shell(f'input touchscreen swipe 50 820 50 820 200')#tap magnifying glass
-	time.sleep(0.2)
+	time.sleep(1)
 	device.shell(f'input touchscreen swipe 400 750 400 750 10 ')#tap search button
 	time.sleep(1)
 	device.shell(f'input touchscreen swipe 960 540 960 540 100 ')#tap barb
-	time.sleep(0.2)
+	time.sleep(1)
 	device.shell(f'input touchscreen swipe 1380 723 1380 723 100 ')#tap attack button
-	time.sleep(0.2)
+	time.sleep(1)
 	device.shell(f'input touchscreen swipe 1830 320 1830 320 100 ') #tap army i want
-	time.sleep(0.2)
+	time.sleep(1)
 	device.shell(f'input touchscreen swipe 1530 460 1530 460 100 ') #tap march button
 	inAttack=False
 
@@ -200,7 +203,6 @@ def update():
 	global nHelps
 	global nIterations
 	updateRunning = True
-	threading.Timer(2.0, update).start() #new thread every 4s
 	nIterations = nIterations + 1
 	image = device.screencap() #take screenshot
 	with open('screen.png', 'wb') as f: #take screenshot
@@ -209,6 +211,7 @@ def update():
 	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
 	print("\n ------------------------------------------------------------------------------------")
 	print("\n Iteration number: ", nIterations)
+	print ("\n Thread Count: ", threading.active_count())
 	print ("\n Helps: ", nHelps)
 	print ("\n New victory cords: ", image[round(0.7597*yRes)][round(0.7979*xRes)], " and ", image[round(0.77*yRes)][round(0.7631*xRes)])
 	print ("\n New defeat cords: ", image[round(0.7726*yRes)][round(0.7616*xRes)], " and ", image[round(0.7713*yRes)][round(0.8001*xRes)])
@@ -228,6 +231,7 @@ def update():
 	elif (checkPixel(0.6343,0.9804,230,0,0,image) == True and inTap == False): #if theres a alliance help request
 		tap(0.67,0.96)
 		nHelps = nHelps + 1
+	threading.Thread(target=update, args=[]).start()
 
 #attackFirstTime()
 #help(0.67,0.96)
