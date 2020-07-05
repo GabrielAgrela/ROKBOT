@@ -38,4 +38,8 @@ Rise of Kingdoms Farming bot
   - Be able to change the emulator's resolution; - DONE
   - Change from fixed pixel position to percentage position; - DONE
 - Notification when CAPTCHA pops up; - DONE
-- RSS farming bot;
+- RSS farming bot: - DONE
+	- Select gatherers (1 to 4 army slots);
+	- Select level of the RSS deposit;
+- Graphical interface;
+- Update README with farm functionality example;

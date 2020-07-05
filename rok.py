@@ -17,6 +17,7 @@ import winsound
 
 inReset = False
 inAttack = False
+inFarm = False
 updateRunning = False
 inEmail = False
 inTap = False
@@ -64,6 +65,33 @@ def checkPixel (yPos, xPos, colorR, colorG, colorB, image):
 
 	if ((image[round(yPos*yRes)][round(xPos*xRes)][0] >= colorRMin and image[round(yPos*yRes)][round(xPos*xRes)][0] <= colorRMax) and (image[round(yPos*yRes)][round(xPos*xRes)][1] >= colorGMin and image[round(yPos*yRes)][round(xPos*xRes)][1] <= colorGMax) and (image[round(yPos*yRes)][round(xPos*xRes)][2] >= colorBMin and image[round(yPos*yRes)][round(xPos*xRes)][2] <= colorBMax)):
 		return True
+
+def farmDyn(Xpos):
+	tap(0.75,0.05) #tap magnifying glass
+	tap(0.90,Xpos) #tap cropland
+	tap(0.70,Xpos) #tap search
+	time.sleep(1)
+	tap(0.50,0.50) #tap deposit
+	tap(0.70,0.75) #tap send gatherers
+	tap(0.20,0.80) #tap new army
+	tap(0.87,0.73) #tap march
+
+def farm():
+	global inFarm
+
+	print(" Preparing Farmers")
+	winsound.Beep(500, 200)
+	time.sleep(0.1)
+	winsound.Beep(500, 200)
+	time.sleep(0.1)
+	winsound.Beep(2500, 200)
+
+	inFarm=True
+	farmDyn(0.35)
+	farmDyn(0.50)
+	farmDyn(0.80)
+	farmDyn(0.65)
+	inFarm=False
 
 def sendEmail(msg):
 	global inEmail
@@ -235,6 +263,7 @@ def update():
 
 #attackFirstTime()
 #help(0.67,0.96)
-update()
+#update()
+farm()
 
 time.sleep(1)
