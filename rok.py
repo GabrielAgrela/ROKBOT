@@ -92,6 +92,11 @@ def farm():
 	farmDyn(0.80)
 	farmDyn(0.65)
 	inFarm=False
+	print("sleeping for 30 mnts");
+	for x in range(35):
+		print(30-x,", minutes left")
+		time.sleep(60)
+	farm()
 
 def sendEmail(msg):
 	global inEmail
@@ -104,9 +109,9 @@ def sendEmail(msg):
 	winsound.Beep(2500, 200)
 	yag = yagmail.SMTP("ithrowthisaway1233321", '123456123456Aa')
 	yag.send("gabrielagrela99@gmail.com", "RISE OF KINGDOMS", msg)
-	#sleeptTime = random.randint(0, 90)
-	#time.sleep(sleeptTime)
-	#device.shell(f'am force-stop com.lilithgame.roc.gp')  #turn off ROK
+	sleeptTime = random.randint(0, 90)
+	time.sleep(sleeptTime)
+	device.shell(f'am force-stop com.lilithgame.roc.gp')  #turn off ROK
 	return
 
 # check if troops are healed
@@ -230,6 +235,8 @@ def update():
 	global inTap
 	global nHelps
 	global nIterations
+	time.sleep(2)
+	inEmail = False
 	updateRunning = True
 	nIterations = nIterations + 1
 	image = device.screencap() #take screenshot
@@ -263,7 +270,7 @@ def update():
 
 #attackFirstTime()
 #help(0.67,0.96)
-#update()
-farm()
+#threading.Thread(target=farm, args=[]).start()
+update()
 
 time.sleep(1)
