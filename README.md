@@ -5,7 +5,8 @@ Rise of Kingdoms Farming bot
 
 - ADB
 - Python
-- Imports: ppadb, PIL, numpy (PIP install these)
+- Imports: ppadb, PIL, numpy, yagmail (PIP install these)
+- Enable adb on your device (even on emulators)
 
 ## What it does and how it works
 - Only searches for barbarians, and heal army as soon as they lose a battle:<img src="/media/defeatExample.gif?raw=true" width="800px">
