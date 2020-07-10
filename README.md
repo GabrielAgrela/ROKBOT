@@ -2,23 +2,27 @@
 Rise of Kingdoms Farming bot
 
 ## Requirements
-
 - ADB
 - Python
-- Imports: ppadb, PIL, numpy, yagmail (PIP install these)
+- Imports: ppadb, PIL, numpy, yagmail, pytesseract (PIP install these)
 - Enable adb on your device (even on emulators)
+- install tesseract and change to your path inside rok.py (follow AllTech's tutorial: https://youtu.be/4DrCIVS5U3Y)
 
-## What it does and how it works
+## What it does  
 - Only searches for barbarians, and heal army as soon as they lose a battle:<img src="/media/defeatExample.gif?raw=true" width="800px">
 - To choose a barbarian level, search manually for one, selecting the barb's level you want the bot to farm:<img src="/media/victoryExample.gif?raw=true" width="800px">
-- The bot will chose the army you saved on the 4th army slot: <img src="/media/chooseArmyExample.png?raw=true" width="800px">
-- DOES NOT GO TROUGH THE CAPTCHA;
+- The bot will choose the army you saved on the 4th army slot: <img src="/media/chooseArmyExample.png?raw=true" width="800px">
+- Sends an email when there's a CAPTCHA or when you are out of AP;
+- When an ally asks for help, ROKBOT automatically taps the notification;
+- Does the lyceum challenge for you;
+
+##how it works
+- To use the lyceum bot, choose the 3rd option (you have to be in the challenge);
 - This bot has been tested on BlueStacks, on a 1920x1080 screen;
 - To run, double-click the batch file;
 - Configure your file locations in the batch file;
 - Configure your email settings in sendEmail();
-- Sends an email when there's a CAPTCHA or when you are out of AP;
-- When an ally asks for help, ROKBOT automatically taps the notification<
+- DOES NOT GO TROUGH THE CAPTCHA;
 - BEEP DEBUG SYSTEM:
 	- beep = help pressed
 	- boop = 1st attack
