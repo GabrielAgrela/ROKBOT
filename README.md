@@ -48,3 +48,4 @@ Rise of Kingdoms Farming bot
 	- Select level of the RSS deposit;
 - Graphical interface;
 - Update README with farm functionality example;
+- Update README with lyceum functionality example;
