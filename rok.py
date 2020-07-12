@@ -12,6 +12,7 @@ import pytesseract as tess
 tess.pytesseract.tesseract_cmd = r'E:\ac\tesseract.exe'
 import os
 import time
+from random import randrange
 
 os.system("")
 
@@ -37,6 +38,7 @@ inFarm = False
 updateRunning = False
 inEmail = False
 inTap = False
+midTerm=False
 
 nHelps = 0
 nIterations = 0
@@ -223,12 +225,13 @@ def attack():
 	time.sleep(1)
 
 	image = device.screencap() #take screenshot
-	with open('screen.png', 'wb') as f: #take screenshot
+	with open('screen2.png', 'wb') as f: #take screenshot
 		f.write(image)
-	image = Image.open('screen.png')
+	image = Image.open('screen2.png')
 	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
-
-	if (checkPixel(0.1343,0.8692,230,0,0,image) == False):
+	#print(image[round(0.1343*yRes)][round(0.8692*xRes)], " ", checkPixel(0.1343,0.8692,230,0,0,image))
+	if (checkPixel(0.66,0.66,230,60,50,image) == None):
+		print(image[round(0.66*yRes)][round(0.66*xRes)], " ", checkPixel(0.66,0.66,230,60,50,image))
 		attack()
 	device.shell(f'input touchscreen swipe 1380 723 1380 723 100 ')#tap attack button
 	time.sleep(1)
@@ -279,11 +282,14 @@ def getTextFromImage(xBeggining, xEnd, yBeggining, yEnd):
 	#formating the newImage array to the screenshot's type
 	newImage = numpy.array(newImage, dtype=numpy.uint8)
 	im = Image.fromarray(newImage)
-	im.save("reading.png")
+	randomN = randrange(100)
+	ran= "reading"+str(randomN)+ ".png"
+	#print(ran)
+	im.save(ran)
 	#now that we saved the cropped image with the text on it, we can open it and get its string
-	img = Image.open('reading.png')
+	img = Image.open(ran)
 	question = tess.image_to_string(img)
-
+	#print("question:",question )
 	return (question.lower())
 #stores all questions data and looks for the right answer
 def chooseAnswer(question):
@@ -296,13 +302,22 @@ def chooseAnswer(question):
 		testingQuestion_list=question_list[-4]
 	except:
 		print(bcolors.FAIL  + "\nQuestion too short, trying another methood... \n"+ bcolors.ENDC)
-		question = getTextFromImage(.2638, .85, .24, .30)
-		question_list = question.split()
+		if (midTerm== False):
+			question = getTextFromImage(.2638, .85, .24, .30)
+		if (midTerm==True):
+			question = getTextFromImage(.2638, .7, .37, .40)
 
-	A = getTextFromImage(.25, .54, .4, .49).lower()
-	B = getTextFromImage(.60, .89, .4, .49).lower()
-	C = getTextFromImage(.25, .54, .54, .62).lower()
-	D = getTextFromImage(.60, .89, .54, .62).lower()
+		question_list = question.split()
+	if (midTerm==False):
+		A = getTextFromImage(.25, .54, .4, .49).lower()
+		B = getTextFromImage(.60, .89, .4, .49).lower()
+		C = getTextFromImage(.25, .54, .54, .62).lower()
+		D = getTextFromImage(.60, .89, .54, .62).lower()
+	if (midTerm==True):
+		A = getTextFromImage(.2631, .50, .48, .54).lower()
+		B = getTextFromImage(.605, .81, .48, .54).lower()
+		C = getTextFromImage(.2631, .50, .58, .64).lower()
+		D = getTextFromImage(.605, .81, .58, .64).lower()
 	print("\n ----------------------------------------------------------------------\n")
 	print("\n Q:",question, "\nkeys: ",question_list[-4] ," and " ,question_list[-3] ," and ",question_list[-1],"\n")
 	print("\n A: ", A)
@@ -343,38 +358,28 @@ def writeInput():
 def lyceumBot(lyceumInput):
 	if (lyceumInput != ""):
 		start = time.time()
-		chooseAnswer(getTextFromImage(.2638,.90,.24,.39))
-		end = time.time()
-		print("ROKBOT needed:", round(end - start),"s to figure out the answer")
-
-def writeInputP():
-	lyceumInput = input('\nPress anything to scan the next question\n')
-	lyceumBot(lyceumInput)
-
-def lyceumBotP(lyceumInput):
-	if (lyceumInput != ""):
-		start = time.time()
-		chooseAnswer(getTextFromImage(.2638,.88,.365,.43))
-		end = time.time()
-		print("ROKBOT needed:", round(end - start),"s to figure out the answer")
-
+		if (midTerm==False):
+			chooseAnswer(getTextFromImage(.2638,.90,.24,.39))
+		elif (midTerm==True):
+			chooseAnswer(getTextFromImage(.2638,.90,.37,.45))
 
 #receives answers from chooseAnswer() and checks which one is in the display's options
 def searchOption(answer,A,B,D,C):
+	answearWords = answer.split()
 	print(bcolors.WARNING  +"\nTrying: ",answer, "... \n" + bcolors.ENDC)
-	if (answer in A):
+	if (answearWords[0] in A):
 		print(bcolors.OKGREEN +"Yup, its ",A + bcolors.ENDC)
 		tap(.45,.3)
 		writeInput()
-	elif (answer in B):
+	elif (answearWords[0] in B):
 		print(bcolors.OKGREEN +"Yup, its ",B + bcolors.ENDC)
 		tap(.45,.7)
 		writeInput()
-	elif (answer in C):
+	elif (answearWords[0] in C):
 		print(bcolors.OKGREEN +"Yup, its ",C + bcolors.ENDC)
 		tap(.58,.3)
 		writeInput()
-	elif (answer in D):
+	elif (answearWords[0] in D):
 		print(bcolors.OKGREEN +"Yup, its ",D + bcolors.ENDC)
 		tap(.6,.7)
 		writeInput()
@@ -404,7 +409,7 @@ def update():
 	print("\n Iteration number: ", nIterations)
 	print ("\n Thread Count: ", threading.active_count())
 	print ("\n Helps: ", nHelps)
-	print ("\n New victory cords: ", image[round(0.7597*yRes)][round(0.7979*xRes)], " and ", image[round(0.77*yRes)][round(0.7631*xRes)])
+	print ("\n New victory cords: ", image[round(0.7597*yRes)][round(0.7979*xRes)], " and ", image[round(0.77*yRes)][round(0.7631*xRes)], "eeeeeeeee ", checkPixel(0.7713,0.8001,251,146,146,image))
 	print ("\n New defeat cords: ", image[round(0.7726*yRes)][round(0.7616*xRes)], " and ", image[round(0.7713*yRes)][round(0.8001*xRes)])
 	print ("\n New CAPTCHA cords: ", image[round(0.1938*yRes)][round(0.8147*xRes)], " and ", image[round(0.1938*yRes)][round(0.8321*xRes)], " and ", image[round(0.1343*yRes)][round(0.8692*xRes)])
 	print ("\n New AP cords: ", image[round(0.5633*yRes)][round(0.2296*xRes)], " and ", image[round(0.1938*yRes)][round(0.8321*xRes)])
@@ -428,7 +433,6 @@ def update():
 #help(0.67,0.96)
 #threading.Thread(target=farm, args=[]).start()
 #update()
-
 lyceumInput = "x"
 menuInput = input('\n1) Attack First time\n2) Run farming bot\n3) Run barbarian Bot\n4) Run Lyceum Bot \n5) Run Lyceum midterm Bot \n')
 if (menuInput == "1"):
@@ -438,8 +442,10 @@ elif (menuInput == "2"):
 elif (menuInput == "3"):
 	update()
 elif (menuInput == "4"):
+	midTerm=False
 	lyceumBot(lyceumInput)
 elif (menuInput == "5"):
-	lyceumBotP(lyceumInput)
+	midTerm=True
+	lyceumBot(lyceumInput)
 
 time.sleep(1)
