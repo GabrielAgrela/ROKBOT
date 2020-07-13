@@ -14,7 +14,6 @@ Rise of Kingdoms Farming bot
 - The bot will choose the army you saved on the 4th army slot: <img src="/media/chooseArmyExample.png?raw=true" width="800px">
 - Sends an email when there's a CAPTCHA or when you are out of AP;
 - When an ally asks for help, ROKBOT automatically taps the notification;
-- Does the lyceum challenge for you;
 
 ##how it works
 - To use the lyceum bot, choose the 3rd option (you have to be in the challenge);
