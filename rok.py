@@ -11,6 +11,7 @@ import winsound
 import pytesseract as tess
 tess.pytesseract.tesseract_cmd = r'E:\ac\tesseract.exe'
 import os
+from difflib import SequenceMatcher
 import time
 from random import randrange
 
@@ -55,6 +56,9 @@ if len(devices) == 0:
 
 #Prolly a good idea to have only 1 device while running this
 device = devices[0]
+
+def similar(a, b):
+    return SequenceMatcher(None, a, b).ratio()
 
 #setting what the MAX R, G or B should be given a color value
 def setMax(color):
@@ -231,7 +235,6 @@ def attack():
 	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
 	#print(image[round(0.1343*yRes)][round(0.8692*xRes)], " ", checkPixel(0.1343,0.8692,230,0,0,image))
 	if (checkPixel(0.66,0.66,230,60,50,image) == None):
-		print(image[round(0.66*yRes)][round(0.66*xRes)], " ", checkPixel(0.66,0.66,230,60,50,image))
 		attack()
 	device.shell(f'input touchscreen swipe 1380 723 1380 723 100 ')#tap attack button
 	time.sleep(1)
@@ -319,36 +322,19 @@ def chooseAnswer(question):
 		C = getTextFromImage(.2631, .50, .58, .64).lower()
 		D = getTextFromImage(.605, .81, .58, .64).lower()
 	print("\n ----------------------------------------------------------------------\n")
-	print("\n Q:",question, "\nkeys: ",question_list[-4] ," and " ,question_list[-3] ," and ",question_list[-1],"\n")
+	print("\n Q:",question,"\n")
 	print("\n A: ", A)
 	print("\n B: ", B)
 	print("\n C: ", C)
 	print("\n D: ", D)
 	found = False
+	imCertain = True
 	for i in range(249):
-		if (question_list[-4] in questions[i] and question_list[-3] in questions[i] and question_list[-1] in questions[i]):
-			#print (answers[i],"\n")
+		if (similar(question,questions[i])>0.9):
+			print(bcolors.OKBLUE + "\n Question Found:",questions[i],"\n" + bcolors.ENDC)
 			found = True
 			searchOption(answers[i],A,B,D,C)
 
-	if (found == False):
-		print(bcolors.FAIL  +"\nNot found, trying different Keys (2)" + bcolors.ENDC)
-		print("\n Q:",question, "\nkeys: ",question_list[-3] ," and ",question_list[-1],"\n")
-		for i in range(249):
-			if (question_list[-3] in questions[i] and question_list[-1] in questions[i]):
-				#print (answers[i],"\n")
-				found = True
-				searchOption(answers[i],A,B,D,C)
-
-	if (found == False):
-		print(bcolors.FAIL  +"\nNot found, trying different Keys (1)" + bcolors.ENDC)
-		print("\n Q:",question, "\nkeys: ",question_list[-3],"\n")
-		for i in range(249):
-			if (question_list[-3] in questions[i]):
-				#print (answers[i],"\n")
-				found = True
-				searchOption(answers[i],A,B,D,C)
-	found = False
 	writeInput()
 
 def writeInput():
@@ -365,22 +351,21 @@ def lyceumBot(lyceumInput):
 
 #receives answers from chooseAnswer() and checks which one is in the display's options
 def searchOption(answer,A,B,D,C):
-	answearWords = answer.split()
 	print(bcolors.WARNING  +"\nTrying: ",answer, "... \n" + bcolors.ENDC)
-	if (answearWords[0] in A):
-		print(bcolors.OKGREEN +"Yup, its ",A + bcolors.ENDC)
+	if (answer in A):
+		print(bcolors.OKGREEN +"I think it can be ",A + bcolors.ENDC)
 		tap(.45,.3)
 		writeInput()
-	elif (answearWords[0] in B):
-		print(bcolors.OKGREEN +"Yup, its ",B + bcolors.ENDC)
+	elif (answer in B):
+		print(bcolors.OKGREEN +"I think it can be ",B + bcolors.ENDC)
 		tap(.45,.7)
 		writeInput()
-	elif (answearWords[0] in C):
-		print(bcolors.OKGREEN +"Yup, its ",C + bcolors.ENDC)
+	elif (answer in C):
+		print(bcolors.OKGREEN +"I think it can be ",C + bcolors.ENDC)
 		tap(.58,.3)
 		writeInput()
-	elif (answearWords[0] in D):
-		print(bcolors.OKGREEN +"Yup, its ",D + bcolors.ENDC)
+	elif (answer in D):
+		print(bcolors.OKGREEN +"I think it can be ",D + bcolors.ENDC)
 		tap(.6,.7)
 		writeInput()
 	else:
