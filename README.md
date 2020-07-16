@@ -14,7 +14,7 @@ Rise of Kingdoms multi-functionalities bot
 - Only searches for barbarians, and heal army as soon as they lose a battle:<img src="/media/defeatExample.gif?raw=true" width="800px">
 - Choose the level you want ROKBOT to farm:<img src="/media/victoryExample.gif?raw=true" width="800px">
 - The bot will choose the army you saved on the 4th army slot: <img src="/media/chooseArmyExample.png?raw=true" width="800px">
-- Does the lyceum challenge for you: <img src="/media/lyceumExample.gif?raw=true" width="800px">
+- Does the lyceum challenge for you (last update, rokbot has a 30/30 correct answers): <img src="/media/lyceumExample.gif?raw=true" width="800px">
 - Sends an email when there's a CAPTCHA or when you are out of AP;
 - When an ally asks for help, ROKBOT automatically taps the notification (while farming only);
 
