@@ -4,11 +4,12 @@ from ppadb.client import Client
 from PIL import Image
 import numpy
 import time
-import threading
+import threading, queue
 import yagmail
 import random
 import winsound
 import pytesseract as tess
+#tess.pytesseract.tesseract_cmd = input('Tessaract path:')
 tess.pytesseract.tesseract_cmd = r'E:\ac\tesseract.exe'
 import os
 from difflib import SequenceMatcher
@@ -17,6 +18,14 @@ import cv2
 from random import randrange
 import tkinter as tk
 import sys
+
+getTextFromImageQueue=queue.Queue()
+
+
+try:
+    os.makedirs('screenshots')
+except OSError as e:
+    print("")
 
 def resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
@@ -48,7 +57,9 @@ inFarm = False
 updateRunning = False
 inEmail = False
 inTap = False
+questionEnded = False
 
+imageG = numpy.zeros((1080, 1920, 4))
 clarionCall = False
 midTerm=False
 
@@ -126,11 +137,22 @@ def farm():
 	farmDyn(0.80)
 	farmDyn(0.65)
 	inFarm=False
-	print("sleeping for 30 mnts");
-	for x in range(35):
-		print(30-x,", minutes left")
-		time.sleep(60)
-	farm()
+	threading.Thread(target=checkIfArrived, args=[]).start()
+
+def checkIfArrived():
+	time.sleep(5)
+	start = time.time()
+	image = device.screencap() #take screenshot
+	with open(resource_path('screen2.png'), 'wb') as f:
+		f.write(image)
+	image = Image.open(resource_path('screen2.png'))
+	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
+	end = time.time()
+	print("It took me: ", str(end - start), "to proccess the image")
+	if (checkPixel(0.25,0.92,8,178,230,image) != True): #if army arrived
+		threading.Thread(target=farm, args=[]).start()
+	else:
+		threading.Thread(target=checkIfArrived, args=[]).start()
 
 #change your emails here
 def sendEmail(msg):
@@ -144,17 +166,17 @@ def sendEmail(msg):
 	winsound.Beep(2500, 200)
 	yag = yagmail.SMTP("ithrowthisaway1233321", '123456123456Aa')
 	yag.send("gabrielagrela99@gmail.com", "RISE OF KINGDOMS", msg)
-	sleeptTime = random.randint(0, 90)
-	time.sleep(sleeptTime)
-	device.shell(f'am force-stop com.lilithgame.roc.gp')  #turn off ROK
+	#sleeptTime = random.randint(0, 90)
+	#time.sleep(sleeptTime)
+	#device.shell(f'am force-stop com.lilithgame.roc.gp')  #turn off ROK
 	return
 
 # check if troops are healed
 def checkHopital():
 	image = device.screencap() #take screenshot
-	with open('screen2.png', 'wb') as f:
+	with open(resource_path('screen2.png'), 'wb') as f:
 		f.write(image)
-	image = Image.open('screen2.png')
+	image = Image.open(resource_path('screen2.png'))
 	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
 	print("waiting for healing: ", image[round(0.25*yRes)][round(0.92*xRes)])
 	if (checkPixel(0.61,0.90,114,46,15,image) == True and checkPixel(0.25,0.92,8,178,230,image) != True): #if army arrived and troops healed/ready to collect
@@ -196,7 +218,7 @@ def clarionCallAttack():
 	global inEmail
 	global clarionCall
 
-	print(" attacking for the first time")
+	print("Started Clarion Call")
 	winsound.Beep(500, 200)
 	time.sleep(0.1)
 	inAttack=True
@@ -208,9 +230,9 @@ def clarionCallAttack():
 	tap(.5,.5) #tap barb
 
 	image = device.screencap() #take screenshot
-	with open('screen2.png', 'wb') as f:
+	with open(resource_path('screen2.png'), 'wb') as f:
 		f.write(image)
-	image = Image.open('screen2.png')
+	image = Image.open(resource_path('screen2.png'))
 	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
 
 
@@ -252,27 +274,27 @@ def attack():
 	device.shell(f'input touchscreen swipe 50 820 50 820 200')#tap magnifying glass
 	time.sleep(1)
 	device.shell(f'input touchscreen swipe 400 750 400 750 10 ')#tap search button
-	time.sleep(3)
+	time.sleep(1)
 	device.shell(f'input touchscreen swipe 960 540 960 540 100 ')#tap barb
 	time.sleep(1)
 
 	image = device.screencap() #take screenshot
-	with open('screen2.png', 'wb') as f:
+	with open(resource_path('screen2.png'), 'wb') as f:
 		f.write(image)
-	image = Image.open('screen2.png')
+	image = Image.open(resource_path('screen2.png'))
 	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
 
 	#print(image[round(0.1343*yRes)][round(0.8692*xRes)], " ", checkPixel(0.1343,0.8692,230,0,0,image))
 	if (checkPixel(0.66,0.66,230,60,50,image) == None): # if red attack button doesnt appear
 		attack()
+	if (checkPixel(0.66,0.66,230,60,50,image) == True):
+		device.shell(f'input touchscreen swipe 1380 723 1380 723 100 ')#tap attack button
+		time.sleep(1)
+		device.shell(f'input touchscreen swipe 1830 320 1830 320 100 ') #tap army i want
+		time.sleep(1)
+		device.shell(f'input touchscreen swipe 1530 460 1530 460 100 ') #tap march button
 
-	device.shell(f'input touchscreen swipe 1380 723 1380 723 100 ')#tap attack button
-	time.sleep(1)
-	device.shell(f'input touchscreen swipe 1830 320 1830 320 100 ') #tap army i want
-	time.sleep(1)
-	device.shell(f'input touchscreen swipe 1530 460 1530 460 100 ') #tap march button
-
-	inAttack=False
+		inAttack=False
 
 #manual start - not being used rn
 def start():
@@ -290,28 +312,37 @@ def start():
 
 #sends different parameters depending on the button pressed (even though both lyceum challenges, midterm/finals and preliminary, use the same functions, their texts are in different positions)
 def lyceumBot():
-	if (midTerm==False):
-		chooseAnswer(getTextFromImage(.2638,.90,.24,.39,True))
-	elif (midTerm==True):
-		chooseAnswer(getTextFromImage(.2638,.90,.37,.45,True))
+	global imageG
+	#take screenshot
+	image = device.screencap()
+	start = time.time()
+	with open(resource_path('screen.png'), 'wb') as f:
+		f.write(image)
 
+	image = Image.open(resource_path('screen.png'))
+	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
+	imageG = image
+	end = time.time()
+	print("It took me: ", str(end - start), "s to get the screenshot")
+	if (midTerm==False):
+		threading.Thread(target=getTextFromImage, args=[.2638,.90,.24,.39,True]).start()
+		threading.Thread(target=chooseAnswer, args=[getTextFromImageQueue.get()]).start()
+	elif (midTerm==True):
+		threading.Thread(target=getTextFromImage, args=[.2638,.90,.37,.45,True]).start()
+		threading.Thread(target=chooseAnswer, args=[getTextFromImageQueue.get()]).start()
 
 #receives the coordinates of the beggining and end of X and Y in order to crop the screensho, framing only the text we want to extract
 def getTextFromImage(xBeggining, xEnd, yBeggining, yEnd, isTitle):
+	global imageG
+	image = imageG
 	xLocal=-1
 	yLocal=-1
 	xTotalPixels = round((xEnd - xBeggining) * xRes)
 	yTotalPixels = round((yEnd - yBeggining) * yRes)
 
-	#take screenshot
-	image = device.screencap()
-	with open(resource_path('screen.png'), 'wb') as f:
-		f.write(image)
-	image = Image.open(resource_path('screen.png'))
-	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
-
 	newImage = numpy.zeros((yTotalPixels+10, xTotalPixels+10, 4)) #newImage is the same kind of array of the screenshot's data
 
+	start = time.time()
 	#copy every pixel's color in the given coordinates and paste them, in the respective order, in the newImage's data array, starting at 0
 	for x in range(round(xBeggining*xRes), round(xEnd*xRes)):
 		xLocal+=1
@@ -321,10 +352,13 @@ def getTextFromImage(xBeggining, xEnd, yBeggining, yEnd, isTitle):
 			#print(xLocal, ",", yLocal, " = ",image[y][x])
 			newImage[yLocal][xLocal] = image[y][x]
 
+	end = time.time()
+	print("It took me: ", str(end - start), "s to crop image")
+	start = time.time()
 	#formating the newImage array to the screenshot's type
 	newImage = numpy.array(newImage, dtype=numpy.uint8)
 	im = Image.fromarray(newImage)
-	randomN = randrange(100)
+	randomN = randrange(2)
 	ran= "screenshots/reading"+str(randomN)+ ".png"
 	#print(ran)
 	im.save(resource_path(ran))
@@ -341,14 +375,15 @@ def getTextFromImage(xBeggining, xEnd, yBeggining, yEnd, isTitle):
 	#Blurring edges makes them less sharp, tess likes that
 	img = cv2.GaussianBlur(img,(11,11),0)
 	img = cv2.medianBlur(img,5)
-
+	end = time.time()
+	print("It took me: ", str(end - start), "s to edit the image")
 
 	#cv2.imshow('asd',img)
 	#cv2.waitKey(0)
 	#cv2.destroyAllWindows()
 
 	question = tess.image_to_string(img, lang='eng')
-	return (question.lower())
+	getTextFromImageQueue.put(question.lower())
 
 #stores all questions data and looks for the right answer
 def chooseAnswer(question):
@@ -368,18 +403,30 @@ def chooseAnswer(question):
 			question = getTextFromImage(.2638, .7, .37, .40,True)
 
 		question_list = question.split()"""
+	start = time.time()
+	global getTextFromImageQueue
+
 	#Midterm/finals have different options positions from preliminary
 	if (midTerm==False):
-		A = getTextFromImage(.25, .54, .4, .49,False).lower()
-		B = getTextFromImage(.60, .89, .4, .49,False).lower()
-		C = getTextFromImage(.25, .54, .54, .62,False).lower()
-		D = getTextFromImage(.60, .89, .54, .62,False).lower()
+		threading.Thread(target=getTextFromImage, args=[.25, .54, .4, .49,False]).start()
+		threading.Thread(target=getTextFromImage, args=[.60, .89, .4, .49,False]).start()
+		threading.Thread(target=getTextFromImage, args=[.25, .54, .54, .62,False]).start()
+		threading.Thread(target=getTextFromImage, args=[.60, .89, .54, .62,False]).start()
+		A = getTextFromImageQueue.get().lower()
+		B = getTextFromImageQueue.get().lower()
+		C = getTextFromImageQueue.get().lower()
+		D = getTextFromImageQueue.get().lower()
 	if (midTerm==True):
-		A = getTextFromImage(.2631, .50, .48, .54,False).lower()
-		B = getTextFromImage(.605, .81, .48, .54,False).lower()
-		C = getTextFromImage(.2631, .50, .58, .64,False).lower()
-		D = getTextFromImage(.605, .81, .58, .64,False).lower()
-
+		threading.Thread(target=getTextFromImage, args=[.2631, .50, .48, .54,False]).start()
+		threading.Thread(target=getTextFromImage, args=[.605, .81, .48, .54,False]).start()
+		threading.Thread(target=getTextFromImage, args=[.2631, .50, .58, .64,False]).start()
+		threading.Thread(target=getTextFromImage, args=[.605, .81, .58, .64,False]).start()
+		A = getTextFromImageQueue.get().lower()
+		B = getTextFromImageQueue.get().lower()
+		C = getTextFromImageQueue.get().lower()
+		D = getTextFromImageQueue.get().lower()
+	end = time.time()
+	print("It took me: ", str(end - start), "s to get every option")
 	print("\n ----------------------------------------------------------------------\n")
 	print("\n Q:",question,"\n")
 	print("\n A: ", A)
@@ -390,6 +437,7 @@ def chooseAnswer(question):
 	found = False
 	imCertain = True
 	certaintyList= []
+	start = time.time()
 	#compare every question stored in questions with the question read, store their values (0.0 to 1.0) in certaintyList[]
 	for i in range(249):
 		certaintyList.append(similar(question,questions[i]))
@@ -403,12 +451,15 @@ def chooseAnswer(question):
 			bestQuestion = certaintyList[i]
 			idBestQuestion=i
 	print(bcolors.OKBLUE + "\n Question Found with" ,certaintyList[idBestQuestion] ,"accuracy: \n",questions[idBestQuestion],"\n" + bcolors.ENDC)
-	searchOption(answers[idBestQuestion],A,B,D,C) #once found the best question, choose its best option
+	end = time.time()
+	print("It took me: ", str(end - start), "s to find the best question")
+	threading.Thread(target=searchOption, args=[answers[idBestQuestion],A,B,D,C]).start() #once found the best question, choose its best option
 
 #receives an answer from chooseAnswer() and checks which option is the most similar
 def searchOption(answer,A,B,D,C):
+	global questionEnded
 	print(bcolors.WARNING  +"\nTrying: ",answer, "\n" + bcolors.ENDC)
-
+	start = time.time()
 	answers = similar(answer,A),similar(answer,B),similar(answer,C),similar(answer,D) #stores the rate of similarity (0.0 to 1.0) of each option vs answer on this array
 
 	#searches for the biggest value (most similar option to its answer) and its id
@@ -419,6 +470,8 @@ def searchOption(answer,A,B,D,C):
 		if (bestOption<answers[i]):
 			bestOption = answers[i]
 			idBestOption=i
+	end = time.time()
+	print("It took me: ", str(end - start), "s to find the best option")
 	#if the best option isn't similar enough to the answer, then something went wrong, but the user can still click manually
 	if (bestOption < 0.6):
 		print(bcolors.FAIL +"Im not sure which option is it, but the answer is: ",answer + bcolors.ENDC)
@@ -426,39 +479,55 @@ def searchOption(answer,A,B,D,C):
 	else:
 		if (idBestOption == 0):
 			print(bcolors.OKGREEN +"It's A - : ",A + bcolors.ENDC)
-			tap(.45,.3)
+			threading.Thread(target=tap, args=[.45,.3]).start()
+			questionEnded = True
 		elif (idBestOption == 1):
 			print(bcolors.OKGREEN +"It's: B - ",B + bcolors.ENDC)
-			tap(.45,.7)
+			threading.Thread(target=tap, args=[.45,.7]).start()
+			questionEnded = True
 		elif (idBestOption == 2):
 			print(bcolors.OKGREEN +"It's: C - ",C + bcolors.ENDC)
-			tap(.58,.3)
+			threading.Thread(target=tap, args=[.58,.3]).start()
+			questionEnded = True
 		elif (idBestOption == 3):
 			print(bcolors.OKGREEN +"It's: D - ",D + bcolors.ENDC)
-			tap(.6,.7)
+			threading.Thread(target=tap, args=[.6,.7]).start()
+			questionEnded = True
 		else:
 			print(bcolors.FAIL  +"ROKBOT didn't find an option found with this answer, check his tries, theres probably the right answer there, slightly different to the options in the display\n" + bcolors.ENDC)
-
+	print ("\n Thread Count: ", threading.active_count())
 	print("\n ----------------------------------------------------------------------\n")
 
 #functin called by lyceum Preliminary button
 def lyceumP():
 	global midTerm
+	global questionEnded
 	midTerm=False
+	questionEnded = False
 	start = time.time()
-	lyceumBot()
+	threading.Thread(target=lyceumBot, args=[]).start()
+	lockQuestion()
 	end = time.time()
 	print("It took me: ", str(end - start), "s to get that answer")
 
 #functin called by lyceum midterm/finals button
 def lyceumM():
 	global midTerm
+	global questionEnded
 	midTerm=True
+	questionEnded = False
 	start = time.time()
-	lyceumBot()
+	threading.Thread(target=lyceumBot, args=[]).start()
+	lockQuestion()
 	end = time.time()
 	print("It took me: ", str(end - start), "s to get that answer")
 
+def lockQuestion():
+	while (questionEnded == False):
+		time.sleep(0.01)
+		lockQuestion()
+
+	return
 #every 1s take a screenshot and analyse it
 def update():
 	global inAttack
@@ -476,9 +545,9 @@ def update():
 	nIterations = nIterations + 1
 
 	image = device.screencap() #take screenshot
-	with open('screen.png', 'wb') as f:
+	with open(resource_path('screen2.png'), 'wb') as f:
 		f.write(image)
-	image = Image.open('screen.png')
+	image = Image.open(resource_path('screen2.png'))
 	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
 
 	#debug data
@@ -508,7 +577,7 @@ def update():
 		tap(0.67,0.96)
 		nHelps = nHelps + 1
 	window.update()
-	update()
+	threading.Thread(target=update, args=[]).start()
 
 #clarionCallAttack()
 #help(0.67,0.96)
@@ -517,8 +586,8 @@ def update():
 
 #graphical interface initializations
 window = tk.Tk()
-firstAttackBtn = tk.Button(text="Clerion Call", command=clarionCallAttack)
-firstAttackBtn.pack()
+clarionCallBtn = tk.Button(text="Clerion Call", command=clarionCallAttack)
+clarionCallBtn.pack()
 farmBtn = tk.Button(text="Farm RSS", command=farm)
 farmBtn.pack()
 farmBarbsBtn = tk.Button(text="Farm Barbs", command=update)
