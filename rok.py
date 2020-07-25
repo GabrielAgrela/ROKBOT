@@ -21,6 +21,7 @@ import sys
 import imagehash
 from skimage.measure import compare_ssim as ssim
 import matplotlib.pyplot as plt
+from scipy import ndimage
 
 #Create folder if doesnt exist
 try:
@@ -89,104 +90,211 @@ def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
 
-def testCaptcha():
+def testCaptcha(whiteBG):
+		maxValue=0
+		maxI=0
+		maxj=0
+		maxX = 0
+		xLocal=0
+		yLocal=0
 
-		"""tempscore=0
+		ob1s=0
+		ob1e=0
+		ob2s=0
+		ob2e=0
 
-		xLocal=-1
-		yLocal=-1
-		img = cv2.imread("captcha.png",0)
-		# since the tittle color is black and the options is white, we need different values to filter it
-		retval, img = cv2.threshold(img, 0,100, cv2.THRESH_BINARY)
-		cv2.imwrite('screenshots/captcha.png',img)
-		image = Image.open('screenshots/captcha.png')
-		image.save("wtf.png")
+		# ------------------- full screenshot with captcha open to image of captcha---------------------
+		image = device.screencap() #take screenshot
+		with open(resource_path('captchaDirty.png'), 'wb') as f:
+			f.write(image)
+		image = Image.open(resource_path('captchaDirty.png'))
 		image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
-		xTotalPixels = round(100)
-		yTotalPixels = round(100)
-		temp=100
+
+		xTotalPixels = round((0.66 - 0.34) * xRes)
+		print(xTotalPixels)
+		yTotalPixels = round((0.87 - 0.125) * yRes)
+		print(round(0.95*xRes)-10)
 		newImage = numpy.zeros((yTotalPixels+10, xTotalPixels+10, 4)) #newImage is the same kind of array of the screenshot's data
-		hash0 = imagehash.average_hash(Image.open('6.png'))
-		hash1 = imagehash.average_hash(Image.open('captcha.png'))
-		print(" e ",hash0-hash1)"""
-		#now that we saved the cropped image with the text on it, we need to apply some filters, making it easier for tess to extract its string
-		img = cv2.imread("captcha2.png",0)
-		retval, img = cv2.threshold(img, 220,255, cv2.THRESH_TOZERO)
-		cv2.imwrite("screenshots/captcha.png",img)
+		for x in range(round(0.34*xRes), round(0.66*xRes)-10):
+			xLocal+=1
+			yLocal=0
+			for y in range(round(0.125*yRes), round(0.87*yRes)-10):
+				yLocal+=1
+				#print(xLocal, ",", yLocal, " = ",image[y][x])
+				newImage[yLocal][xLocal] = image[y][x]
 
-		method = cv2.TM_SQDIFF
+		newImage = numpy.array(newImage, dtype=numpy.uint8)
+		im = Image.fromarray(newImage)
+		randomN = randrange(20)
+		im = im.resize((450, 580), Image.ANTIALIAS)
+		ran= "captcha.png"
+		#print(ran)
+		im.save(resource_path(ran))
 
-		# Read the images from the file
-		small_image = cv2.imread('12.png')
-		large_image = cv2.imread("screenshots/captcha.png")
-
-		cv2.imwrite("demo.png",small_image)
-		result = cv2.matchTemplate( large_image,small_image, method)
-		# Initiate ORB detector
-		orb = cv2.ORB_create()
-		# find the keypoints and descriptors with ORB
-		kp1, des1 = orb.detectAndCompute(small_image,None)
-		kp2, des2 = orb.detectAndCompute(large_image,None)
-		# create BFMatcher object
-		bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-
-		# Match descriptors.
-		matches = bf.match(des1,des2)
-		# Sort them in the order of their distance.
-		matches = sorted(matches, key = lambda x:x.distance)
-		# Draw first 10 matches.
-		img3 = cv2.drawMatches(small_image,kp1,large_image,kp2,matches[:10],None,flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-		plt.imshow(img3),plt.show()
+		# -------------------image of captcha to obj1 and obj2 images ---------------------
+		xLocal=0
+		yLocal=0
+		image = Image.open(resource_path('captcha.png'))
+		image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
 
 
+		xTotalPixels = round(449 - 225)
+		yTotalPixels = round(72-2)
 
-		# We want the minimum squared difference
-		mn,_,mnLoc,_ = cv2.minMaxLoc(result)
-		# Draw the rectangle:
-		# Extract the coordinates of our best match
-		MPx,MPy = mnLoc
+		newImage = numpy.zeros((yTotalPixels+2, xTotalPixels+2, 4)) #newImage is the same kind of array of the screenshot's data
+		for x in range(225, 449):
+			xLocal+=1
+			yLocal=0
+			onWhite=True
+			#print(newImage[35][xLocal-1][0])
+			if (xLocal-1>2):
+				if (newImage[35][xLocal-1][0]>250):
+					#print("white",xLocal-1)
+					if (ob1s != 0 and ob1e == 0):
+						ob1e=xLocal-1
+					if(ob2s != 0 and ob2e ==0):
+						ob2e=xLocal-1
+				if (newImage[35][xLocal-1][0]<50):
+					#print("black ",xLocal-1)
+					if (ob1s == 0):
+						ob1s=xLocal-1
+					if (ob1e != 0 and ob2s == 0):
+						ob2s = xLocal-1
+			for y in range(2, 72):
+				yLocal+=1
+				#print(xLocal, ",", yLocal, " = ",image[y][x])
+				newImage[yLocal][xLocal] = image[y][x]
 
-		# Step 2: Get the size of the template. This is the same size as the match.
-		trows,tcols = small_image.shape[:2]
+		newImage = numpy.array(newImage, dtype=numpy.uint8)
+		im = Image.fromarray(newImage)
+		randomN = randrange(20)
+		ran= "ob1and2.png"
+		#print(ran)
+		im.save(resource_path(ran))
 
-		# Step 3: Draw the rectangle on large_image
-		#cv2.rectangle(large_image, (MPx,MPy),(MPx+tcols,MPy+trows),(0,0,255),2)
-		cv2.rectangle(large_image, (MPx,MPy),(MPx+tcols,MPy+trows),(0,0,255),2)
-		# Display the original image with the rectangle around the match.
-		cv2.imshow("coco",large_image)
+		# -------------------image of ob1and2 to image of ob1 ---------------------
+		image = Image.open(resource_path('ob1and2.png'))
+		image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
+		ob1e = ob1e+5
+		ob2e = ob2e+5
+		ob1s = ob1s-5
+		ob2s = ob2s-5
 
-		# The image is only displayed if we call this
-		cv2.waitKey(50)
+		xTotalPixels = round(ob1e - ob1s)
+		yTotalPixels = round(65)
+		xLocal=0
+		yLocal=0
+		newImage = numpy.zeros((yTotalPixels+2, xTotalPixels+2, 4)) #newImage is the same kind of array of the screenshot's data
+		for x in range(ob1s, ob1e):
+			xLocal+=1
+			yLocal=0
+			for y in range(0, 64):
+				yLocal+=1
+				#print(xLocal, ",", yLocal, " = ",image[y][x])
+				newImage[yLocal][xLocal] = image[y][x]
 
-		"""#copy every pixel's color in the given coordinates and paste them, in the respective order, in the newImage's data array, starting at 0
-		for j in range (50):
-			yLocal = -1
-			xLocal = -1
-			for i in range (30):
-				yLocal = -1
-				xLocal = -1
-				for x in range(0+(i * 10), 100+(i *10)):
-					xLocal+=1
-					yLocal=0
-					for y in range(0+j*10, 100+j*10):
-						yLocal+=1
-						#print(xLocal, ",", yLocal, " = ",image[y][x])
+		newImage = numpy.array(newImage, dtype=numpy.uint8)
+		im = Image.fromarray(newImage)
+		randomN = randrange(20)
+		ran= "ob1.png"
+		#print(ran)
+		im.save(resource_path(ran))
 
-						newImage[yLocal][xLocal] = img[y][x]
-						newImage[yLocal][xLocal][3]=0
+		# -------------------image of ob1and2 to image of ob2 ---------------------
+		xTotalPixels = round(ob2e - ob2s)
+		yTotalPixels = round(65)
+		xLocal=0
+		yLocal=0
+		newImage = numpy.zeros((yTotalPixels+2, xTotalPixels+2, 4)) #newImage is the same kind of array of the screenshot's data
+		for x in range(ob2s, ob2e):
+			xLocal+=1
+			yLocal=0
+			for y in range(0, 64):
+				yLocal+=1
+				#print(xLocal, ",", yLocal, " = ",image[y][x])
+				newImage[yLocal][xLocal] = image[y][x]
 
-				#formating the newImage array to the screenshot's type
-				newImage = numpy.array(newImage, dtype=numpy.uint8)
-				im = Image.fromarray(newImage)
-				randomN = randrange(20)
-				ran= "screenshots/cona"+str(j)+ " e "+str(i)+".png"
-				hash0 = imagehash.average_hash(cv2.imread('6.png'))
-				hash1 = imagehash.average_hash(cv2.imread(ran))
-				if (temp > hash0-hash1):
-					print(ran, " e ",hash0-hash1)
-					temp = hash0-hash1"""
+		newImage = numpy.array(newImage, dtype=numpy.uint8)
+		im = Image.fromarray(newImage)
+		randomN = randrange(20)
+		ran= "ob2.png"
+		#print(ran)
+		im.save(resource_path(ran))
+
+		# -------------------image of captcha to image of the image of the captcha---------------------
+		image = Image.open(resource_path('captcha.png'))
+		image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
+
+		xTotalPixels = round(440)
+		yTotalPixels = round(500-75)
+		xLocal=0
+		yLocal=0
+		newImage = numpy.zeros((yTotalPixels+2, xTotalPixels+2, 4)) #newImage is the same kind of array of the screenshot's data
+		for x in range(0, 440):
+			xLocal+=1
+			yLocal=0
+			for y in range(75, 500):
+				yLocal+=1
+				#print(xLocal, ",", yLocal, " = ",image[y][x])
+				newImage[yLocal][xLocal] = image[y][x]
+
+		newImage = numpy.array(newImage, dtype=numpy.uint8)
+		im = Image.fromarray(newImage)
+		randomN = randrange(20)
+		ran= "captchaClean.png"
+		#print(ran)
+		im.save(resource_path(ran))
+
+		# -------------------look for ob1 inside the image of the image of the captcha ---------------------
+		for x in range(6):
+			print("X: "+str(x)+"/6")
+			img = cv2.imread("captchaClean.png",0)
+			retval, img = cv2.threshold(img, x*40,230, cv2.THRESH_TOZERO)
+			cv2.imwrite("screenshots/captcha.png",img)
+
+			method = cv2.TM_SQDIFF_NORMED
+
+			template = cv2.imread("ob1.png", 0)
+			if(whiteBG == False):
+				template = cv2.bitwise_not(template)
+			for i in range (10):
+				if(i != 0):
+					template = cv2.imread("template/pan"+str(i-1)+"angle0.png", 0)
+				template = cv2.resize(template,(0,0),fx=1.1,fy=1.1, interpolation=cv2.INTER_CUBIC)
+				for j in range (36):
+					img = cv2.imread('screenshots/captcha.png', 0)
+					img2 = cv2.imread('screenshots/captcha.png', 1)
+					template=rotate_image(template, 10,whiteBG)
+					cv2.imwrite("template/pan"+str(i)+"angle"+str(j)+".png",template)
+					w, h = template.shape[::-1]
+
+					#img3 = img2.copy()
+
+					res = cv2.matchTemplate(img,template,cv2.TM_CCOEFF_NORMED)
+					min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+
+					top_left = max_loc
+					bottom_right = (top_left[0] + w, top_left[1] + h)
+
+					cv2.rectangle(img2, top_left, bottom_right, (0, 255, 0), 2)
+					if (numpy.amax(res) > maxValue):
+						maxValue= numpy.amax(res)
+						maxI = i
+						maxJ = j
+						maxX = x
+						cv2.imwrite("bestMatch.png",img2)
+
+		print(str(maxValue)+" "+str(maxI)+" "+str(maxJ)+" "+str(maxX))
 
 
+def rotate_image(image, angle,whiteBG):
+	image_center = tuple(numpy.array(image.shape[1::-1]) / 2)
+	rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
+	if (whiteBG == True):
+		result = cv2.warpAffine(image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LANCZOS4, borderValue=(255,255,255))
+	else:
+		result = cv2.warpAffine(image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
+	return result
 
 #setting what the MAX R, G or B should be given a color value
 def setMax(color):
@@ -530,7 +638,7 @@ def chooseAnswer(question):
 		A = getTextFromImageQueue.get().lower()
 		threading.Thread(target=getTextFromImage, args=[.59, .86, .48, .55,False]).start()
 		B = getTextFromImageQueue.get().lower()
-		threadi3ng.Thread(target=getTextFromImage, args=[.25, .52, .61, .68,False]).start()
+		threading.Thread(target=getTextFromImage, args=[.25, .52, .61, .68,False]).start()
 		C = getTextFromImageQueue.get().lower()
 		threading.Thread(target=getTextFromImage, args=[.59, .86, .61, .68,False]).start()
 		D = getTextFromImageQueue.get().lower()
@@ -588,19 +696,19 @@ def searchOption(answer,A,B,D,C):
 	else:
 		if (idBestOption == 0):
 			print(bcolors.OKGREEN +"It's A - : ",A + bcolors.ENDC)
-			threading.Thread(target=tap, args=[.45,.3]).start()
+			threading.Thread(target=tap, args=[.48,.3]).start()
 			questionEnded = True
 		elif (idBestOption == 1):
 			print(bcolors.OKGREEN +"It's: B - ",B + bcolors.ENDC)
-			threading.Thread(target=tap, args=[.45,.7]).start()
+			threading.Thread(target=tap, args=[.48,.7]).start()
 			questionEnded = True
 		elif (idBestOption == 2):
 			print(bcolors.OKGREEN +"It's: C - ",C + bcolors.ENDC)
-			threading.Thread(target=tap, args=[.58,.3]).start()
+			threading.Thread(target=tap, args=[.61,.3]).start()
 			questionEnded = True
 		elif (idBestOption == 3):
 			print(bcolors.OKGREEN +"It's: D - ",D + bcolors.ENDC)
-			threading.Thread(target=tap, args=[.6,.7]).start()
+			threading.Thread(target=tap, args=[.61,.7]).start()
 			questionEnded = True
 		else:
 			print(bcolors.FAIL  +"ROKBOT didn't find an option found with this answer, check his tries, theres probably the right answer there, slightly different to the options in the display\n" + bcolors.ENDC)
@@ -682,9 +790,9 @@ def update():
 			reset()
 		elif (clarionCall == False):
 			attack()
-	elif (checkPixel(0.6343,0.9804,230,0,0,image) == True and inTap == False): #if theres a alliance help request
+	"""elif (checkPixel(0.6343,0.9804,230,0,0,image) == True and inTap == False): #if theres a alliance help request
 		tap(0.67,0.96)
-		nHelps = nHelps + 1
+		nHelps = nHelps + 1"""
 	window.update()
 	threading.Thread(target=update, args=[]).start()
 
@@ -692,7 +800,11 @@ def update():
 #help(0.67,0.96)
 #threading.Thread(target=farm, args=[]).start()
 #update()
-#testCaptcha()
+start = time.time()
+testCaptcha(False)
+end = time.time()
+print("It took me: ", str(end - start), "s to find 1 object")
+
 #graphical interface initializations
 window = tk.Tk()
 clarionCallBtn = tk.Button(text="Clerion Call", command=clarionCallAttack)
