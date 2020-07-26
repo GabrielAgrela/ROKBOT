@@ -22,7 +22,8 @@ import imagehash
 from skimage.measure import compare_ssim as ssim
 import matplotlib.pyplot as plt
 from scipy import ndimage
-
+import pprint
+import webbrowser
 #Create folder if doesnt exist
 try:
     os.makedirs('screenshots')
@@ -740,10 +741,10 @@ def chooseAnswer(question):
 	print(bcolors.OKBLUE + "\n Question Found with" ,certaintyList[idBestQuestion] ,"accuracy: \n",questions[idBestQuestion],"\n" + bcolors.ENDC)
 	end = time.time()
 	print("It took me: ", str(end - start), "s to find the best question")
-	threading.Thread(target=searchOption, args=[answers[idBestQuestion],A,B,D,C]).start() #once found the best question, choose its best option
+	threading.Thread(target=searchOption, args=[questions[idBestQuestion],answers[idBestQuestion],A,B,D,C]).start() #once found the best question, choose its best option
 
 #receives an answer from chooseAnswer() and checks which option is the most similar
-def searchOption(answer,A,B,D,C):
+def searchOption(bestQuestion, answer,A,B,D,C):
 	global questionEnded
 	print(bcolors.WARNING  +"\nTrying: ",answer, "\n" + bcolors.ENDC)
 	start = time.time()
@@ -760,8 +761,10 @@ def searchOption(answer,A,B,D,C):
 	end = time.time()
 	print("It took me: ", str(end - start), "s to find the best option")
 	#if the best option isn't similar enough to the answer, then something went wrong, but the user can still click manually
-	if (bestOption < 0.6):
-		print(bcolors.FAIL +"Im not sure which option is it, but the answer is: ",answer + bcolors.ENDC)
+	if (bestOption < .6):
+		webbrowser.open('https://www.google.com/search?q='+bestQuestion, new=2)
+		print(bcolors.FAIL +"Im not sure which option is it, but the answer is either ",answer, " or check the google page I opened"+ bcolors.ENDC)
+		questionEnded = True
 	#if the best option is similar enough, tap it prgrammatically
 	else:
 		if (idBestOption == 0):
@@ -782,6 +785,7 @@ def searchOption(answer,A,B,D,C):
 			questionEnded = True
 		else:
 			print(bcolors.FAIL  +"ROKBOT didn't find an option found with this answer, check his tries, theres probably the right answer there, slightly different to the options in the display\n" + bcolors.ENDC)
+			questionEnded = True
 	print ("\n Thread Count: ", threading.active_count())
 	print("\n ----------------------------------------------------------------------\n")
 
@@ -870,13 +874,20 @@ def update():
 #help(0.67,0.96)
 #threading.Thread(target=farm, args=[]).start()
 #update()
-tap(.16,.85)
+"""tap(.16,.85)
 tap(.50,.65)
 time.sleep(2)
 start = time.time()
 testCaptcha(False)
 end = time.time()
-print("It took me: ", str(end - start), "s to find 1 object")
+print("It took me: ", str(end - start), "s to find 1 object")"""
+
+
+
+
+
+
+
 
 #graphical interface initializations
 window = tk.Tk()
