@@ -70,6 +70,11 @@ midTerm=False
 nHelps = 0
 nIterations = 0
 
+ob1e=0
+ob2e=0
+ob1s=0
+ob2s=0
+
 xRes = 1920
 yRes = 1080
 
@@ -89,203 +94,268 @@ device = devices[0]
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
+#screenshots whole screen and cuts the part where theres the captcha and its info to a png
+def screenshotOfCaptcha():
+	xLocal=0
+	yLocal=0
+	# ------------------- full screenshot with captcha open to image of captcha---------------------
+	image = device.screencap() #take screenshot
+	with open(resource_path('captchaDirty.png'), 'wb') as f:
+		f.write(image)
+	image = Image.open(resource_path('captchaDirty.png'))
+	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
 
-def testCaptcha(whiteBG):
-		maxValue=0
-		maxI=0
-		maxj=0
-		maxX = 0
-		xLocal=0
+	xTotalPixels = round((0.66 - 0.34) * xRes)
+	print(xTotalPixels)
+	yTotalPixels = round((0.87 - 0.125) * yRes)
+	print(round(0.95*xRes)-10)
+	newImage = numpy.zeros((yTotalPixels+10, xTotalPixels+10, 4)) #newImage is the same kind of array of the screenshot's data
+	for x in range(round(0.34*xRes), round(0.66*xRes)-10):
+		xLocal+=1
 		yLocal=0
+		for y in range(round(0.125*yRes), round(0.87*yRes)-10):
+			yLocal+=1
+			#print(xLocal, ",", yLocal, " = ",image[y][x])
+			newImage[yLocal][xLocal] = image[y][x]
 
-		ob1s=0
-		ob1e=0
-		ob2s=0
-		ob2e=0
+	newImage = numpy.array(newImage, dtype=numpy.uint8)
+	im = Image.fromarray(newImage)
+	randomN = randrange(20)
+	im = im.resize((450, 580), Image.ANTIALIAS)
+	ran= "captcha.png"
+	#print(ran)
+	im.save(resource_path(ran))
 
-		# ------------------- full screenshot with captcha open to image of captcha---------------------
-		image = device.screencap() #take screenshot
-		with open(resource_path('captchaDirty.png'), 'wb') as f:
-			f.write(image)
-		image = Image.open(resource_path('captchaDirty.png'))
-		image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
+#opens the captcha png and its info to extract the objects needed to a png
+def captchaToObjects():
+	global ob1s
+	global ob1e
+	global ob2s
+	global ob2e
+	ob1s=0
+	ob1e=0
+	ob2s=0
+	ob2e=0
+	xLocal=0
+	yLocal=0
 
-		xTotalPixels = round((0.66 - 0.34) * xRes)
-		print(xTotalPixels)
-		yTotalPixels = round((0.87 - 0.125) * yRes)
-		print(round(0.95*xRes)-10)
-		newImage = numpy.zeros((yTotalPixels+10, xTotalPixels+10, 4)) #newImage is the same kind of array of the screenshot's data
-		for x in range(round(0.34*xRes), round(0.66*xRes)-10):
-			xLocal+=1
-			yLocal=0
-			for y in range(round(0.125*yRes), round(0.87*yRes)-10):
-				yLocal+=1
-				#print(xLocal, ",", yLocal, " = ",image[y][x])
-				newImage[yLocal][xLocal] = image[y][x]
+	image = Image.open(resource_path('captcha.png'))
+	image = numpy.array(image, dtype=numpy.uint8)
 
-		newImage = numpy.array(newImage, dtype=numpy.uint8)
-		im = Image.fromarray(newImage)
-		randomN = randrange(20)
-		im = im.resize((450, 580), Image.ANTIALIAS)
-		ran= "captcha.png"
-		#print(ran)
-		im.save(resource_path(ran))
+	#dimensions of the objects location (static at the momment)
+	xTotalPixels = round(449 - 210)
+	yTotalPixels = round(72-2)
 
-		# -------------------image of captcha to obj1 and obj2 images ---------------------
-		xLocal=0
+	blackOnce = False
+
+	#print("------------------------------")
+	newImage = numpy.zeros((yTotalPixels+2, xTotalPixels+2, 4)) #image of the objects "placeholder"
+	#populate newImage with the pixels of the objects from captcha while also checking if theres only 2 objects
+	for x in range(210, 410):
+		xLocal+=1
 		yLocal=0
-		image = Image.open(resource_path('captcha.png'))
-		image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
+		onWhite=True
+		#print(newImage[35][xLocal-1][0])
+		if (xLocal-1>2):
+			#print(newImage[30][xLocal-1][0])
+			if (newImage[30][xLocal-1][0]>250):
+				#print("white",xLocal-1)
+				if (ob1s != 0 and ob1e == 0):
+					#print("ob1 ends")
+					ob1e=xLocal-1
+				if(ob2s != 0 and ob2e ==0):
+					#print("ob2 ends")
+					ob2e=xLocal-1
+			if (newImage[30][xLocal-1][0]<50):
+				#print("black ",xLocal-1)
+				if (ob1s == 0):
+					#print("ob1 starts")
+					ob1s=xLocal-1
+				if (blackOnce == True and newImage[35][xLocal-1][0] != 0.0):
+					#print("ob3 starts") #ob3 start, therefore theres more than 2 objects, re-roll the captcha to find an easier one
+					tap(.16,.85)
+					tap(.50,.65)
+					time.sleep(2)
+					testCaptcha(False)
+					break
+				if (ob2e != 0):
+					blackOnce = True
+				if (ob1e != 0 and ob2s == 0):
+					print("ob2 comeca")
+					ob2s = xLocal-1
+		for y in range(2, 72):
+			yLocal+=1
+			#print(xLocal, ",", yLocal, " = ",image[y][x])
+			newImage[yLocal][xLocal] = image[y][x]
 
+	#config image with objects and save it
+	newImage = numpy.array(newImage, dtype=numpy.uint8)
+	im = Image.fromarray(newImage)
+	randomN = randrange(20)
+	ran= "ob1and2.png"
+	im.save(resource_path(ran))
 
-		xTotalPixels = round(449 - 225)
-		yTotalPixels = round(72-2)
+	#usually each image is cropped too thin, so i give it a little room
+	ob1e = ob1e+15
+	ob2e = ob2e+15
+	ob1s = ob1s-15
+	ob2s = ob2s-15
 
-		newImage = numpy.zeros((yTotalPixels+2, xTotalPixels+2, 4)) #newImage is the same kind of array of the screenshot's data
-		for x in range(225, 449):
-			xLocal+=1
-			yLocal=0
-			onWhite=True
-			#print(newImage[35][xLocal-1][0])
-			if (xLocal-1>2):
-				if (newImage[35][xLocal-1][0]>250):
-					#print("white",xLocal-1)
-					if (ob1s != 0 and ob1e == 0):
-						ob1e=xLocal-1
-					if(ob2s != 0 and ob2e ==0):
-						ob2e=xLocal-1
-				if (newImage[35][xLocal-1][0]<50):
-					#print("black ",xLocal-1)
-					if (ob1s == 0):
-						ob1s=xLocal-1
-					if (ob1e != 0 and ob2s == 0):
-						ob2s = xLocal-1
-			for y in range(2, 72):
-				yLocal+=1
-				#print(xLocal, ",", yLocal, " = ",image[y][x])
-				newImage[yLocal][xLocal] = image[y][x]
+#get individual image of one object from the image with the objects
+def getObj(objN):
 
-		newImage = numpy.array(newImage, dtype=numpy.uint8)
-		im = Image.fromarray(newImage)
-		randomN = randrange(20)
-		ran= "ob1and2.png"
-		#print(ran)
-		im.save(resource_path(ran))
+	image = Image.open(resource_path('ob1and2.png'))
+	image = numpy.array(image, dtype=numpy.uint8) #get data in rgba
 
-		# -------------------image of ob1and2 to image of ob1 ---------------------
-		image = Image.open(resource_path('ob1and2.png'))
-		image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
-		ob1e = ob1e+5
-		ob2e = ob2e+5
-		ob1s = ob1s-5
-		ob2s = ob2s-5
-
+	#obj Y is always the same but X depends on the values found in captchaToObjects()
+	if(objN == "1"):
 		xTotalPixels = round(ob1e - ob1s)
-		yTotalPixels = round(65)
-		xLocal=0
-		yLocal=0
-		newImage = numpy.zeros((yTotalPixels+2, xTotalPixels+2, 4)) #newImage is the same kind of array of the screenshot's data
+	else:
+		xTotalPixels = round(ob2e - ob2s)
+	yTotalPixels = round(50)
+	xLocal=0
+	yLocal=0
+	newImage = numpy.zeros((yTotalPixels+2, xTotalPixels+2, 4)) #image of the object "placeholder"
+	#populate new image with the right dimensions and pixels of each object from the ob1and2.png
+	if(objN == "1"):
 		for x in range(ob1s, ob1e):
 			xLocal+=1
 			yLocal=0
-			for y in range(0, 64):
+			for y in range(5, 55):
 				yLocal+=1
 				#print(xLocal, ",", yLocal, " = ",image[y][x])
 				newImage[yLocal][xLocal] = image[y][x]
-
-		newImage = numpy.array(newImage, dtype=numpy.uint8)
-		im = Image.fromarray(newImage)
-		randomN = randrange(20)
-		ran= "ob1.png"
-		#print(ran)
-		im.save(resource_path(ran))
-
-		# -------------------image of ob1and2 to image of ob2 ---------------------
-		xTotalPixels = round(ob2e - ob2s)
-		yTotalPixels = round(65)
-		xLocal=0
-		yLocal=0
-		newImage = numpy.zeros((yTotalPixels+2, xTotalPixels+2, 4)) #newImage is the same kind of array of the screenshot's data
+	else:
 		for x in range(ob2s, ob2e):
 			xLocal+=1
 			yLocal=0
-			for y in range(0, 64):
+			for y in range(5, 55):
 				yLocal+=1
 				#print(xLocal, ",", yLocal, " = ",image[y][x])
 				newImage[yLocal][xLocal] = image[y][x]
 
-		newImage = numpy.array(newImage, dtype=numpy.uint8)
-		im = Image.fromarray(newImage)
-		randomN = randrange(20)
-		ran= "ob2.png"
-		#print(ran)
-		im.save(resource_path(ran))
+	#config new obN.png
+	newImage = numpy.array(newImage, dtype=numpy.uint8)
+	im = Image.fromarray(newImage)
+	randomN = randrange(20)
+	ran= "ob"+objN+".png"
+	#print(ran)
+	im.save(resource_path(ran))
 
-		# -------------------image of captcha to image of the image of the captcha---------------------
-		image = Image.open(resource_path('captcha.png'))
-		image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
+#In order to get the best result possible, isolate the puzzle image from captcha from all its irrelevand info
+def getPuzzleImageFromCaptcha():
 
-		xTotalPixels = round(440)
-		yTotalPixels = round(500-75)
-		xLocal=0
+	image = Image.open(resource_path('captcha.png'))
+	image = numpy.array(image, dtype=numpy.uint8) #get data in rgba
+
+	#image dimensions (static atm)
+	xTotalPixels = round(440)
+	yTotalPixels = round(500-75)
+
+	xLocal=0
+	yLocal=0
+	newImage = numpy.zeros((yTotalPixels+2, xTotalPixels+2, 4)) #clean captcha image "placeholder"
+	for x in range(0, 440):
+		xLocal+=1
 		yLocal=0
-		newImage = numpy.zeros((yTotalPixels+2, xTotalPixels+2, 4)) #newImage is the same kind of array of the screenshot's data
-		for x in range(0, 440):
-			xLocal+=1
-			yLocal=0
-			for y in range(75, 500):
-				yLocal+=1
-				#print(xLocal, ",", yLocal, " = ",image[y][x])
-				newImage[yLocal][xLocal] = image[y][x]
+		for y in range(75, 500):
+			yLocal+=1
+			#print(xLocal, ",", yLocal, " = ",image[y][x])
+			newImage[yLocal][xLocal] = image[y][x]
 
-		newImage = numpy.array(newImage, dtype=numpy.uint8)
-		im = Image.fromarray(newImage)
-		randomN = randrange(20)
-		ran= "captchaClean.png"
-		#print(ran)
-		im.save(resource_path(ran))
+	#config captchaClean.png
+	newImage = numpy.array(newImage, dtype=numpy.uint8)
+	im = Image.fromarray(newImage)
+	randomN = randrange(20)
+	ran= "captchaClean.png"
+	im.save(resource_path(ran))
 
-		# -------------------look for ob1 inside the image of the image of the captcha ---------------------
-		for x in range(6):
-			print("X: "+str(x)+"/6")
-			img = cv2.imread("captchaClean.png",0)
-			retval, img = cv2.threshold(img, x*40,230, cv2.THRESH_TOZERO)
-			cv2.imwrite("screenshots/captcha.png",img)
+#algorithm where the match between the obN.png and the captchaClean.png is found
+def findObj(objN,whiteBG):
+	maxValue=0
+	maxI=0
+	maxj=0
+	maxX=0
+	px=0
+	py=0
+	#try six different cv2.Threshold values (basically change contrast and light)
+	for x in range(6):
+		#print("X: "+str(x)+"/6")
+		img = cv2.imread("captchaClean.png",0)
+		retval, img = cv2.threshold(img, x*40,230, cv2.THRESH_TOZERO)
+		cv2.imwrite("screenshots/captcha.png",img)
 
-			method = cv2.TM_SQDIFF_NORMED
+		method = cv2.TM_SQDIFF_NORMED
 
-			template = cv2.imread("ob1.png", 0)
-			if(whiteBG == False):
-				template = cv2.bitwise_not(template)
-			for i in range (10):
-				if(i != 0):
-					template = cv2.imread("template/pan"+str(i-1)+"angle0.png", 0)
-				template = cv2.resize(template,(0,0),fx=1.1,fy=1.1, interpolation=cv2.INTER_CUBIC)
-				for j in range (36):
-					img = cv2.imread('screenshots/captcha.png', 0)
-					img2 = cv2.imread('screenshots/captcha.png', 1)
-					template=rotate_image(template, 10,whiteBG)
-					cv2.imwrite("template/pan"+str(i)+"angle"+str(j)+".png",template)
-					w, h = template.shape[::-1]
+		template = cv2.imread("ob"+objN+".png", 0)
+		#every other X change from black and white to white and black, higher chance of success this way
+		if x % 2 != 0:
+			whiteBG = False
+			template = cv2.bitwise_not(template)
+		else:
+			whiteBG = True
 
-					#img3 = img2.copy()
+		#every 10 iterations make the obN bigger
+		for i in range (10):
+			if(i != 0):
+				template = cv2.imread("template/pan"+str(i-1)+"angle0.png", 0)
+			template = cv2.resize(template,(0,0),fx=1.1,fy=1.1, interpolation=cv2.INTER_CUBIC)
 
-					res = cv2.matchTemplate(img,template,cv2.TM_CCOEFF_NORMED)
-					min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+			#every 36 iterations rotate objN 10º
+			for j in range (36):
+				img = cv2.imread('screenshots/captcha.png', 0)
+				img2 = cv2.imread('screenshots/captcha.png', 1)
+				template=rotate_image(template, 10,whiteBG)
+				cv2.imwrite("template/pan"+str(i)+"angle"+str(j)+".png",template)
+				w, h = template.shape[::-1]
 
-					top_left = max_loc
-					bottom_right = (top_left[0] + w, top_left[1] + h)
+				#img3 = img2.copy()
 
-					cv2.rectangle(img2, top_left, bottom_right, (0, 255, 0), 2)
-					if (numpy.amax(res) > maxValue):
-						maxValue= numpy.amax(res)
-						maxI = i
-						maxJ = j
-						maxX = x
-						cv2.imwrite("bestMatch.png",img2)
+				res = cv2.matchTemplate(img,template,cv2.TM_CCOEFF_NORMED)
+				min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 
-		print(str(maxValue)+" "+str(maxI)+" "+str(maxJ)+" "+str(maxX))
+				top_left = max_loc
+				bottom_right = (top_left[0] + w, top_left[1] + h)
+				#draw a rectangle on what seems the best match
+				cv2.rectangle(img2, top_left, bottom_right, (0, 255, 0), 2)
+				#every time theres a better match than the previously best match, update it and store it's max values
+				if (numpy.amax(res) > maxValue):
+					maxValue= numpy.amax(res)
+					px=top_left[0]*1.3  + w
+					py=top_left[1]*1.3 + h
+					maxI = i
+					maxJ = j
+					maxX = x
+					cv2.imwrite("bestMatch"+objN+".png",img2)
 
+	#once finished, tap the location with the best match
+	tap(((py)+(yRes*0.213))/yRes,((px)+(xRes*0.34))/xRes)
+
+	#print(((py)+(yRes*0.213))/yRes, " ",((px)+(xRes*0.34))/xRes)
+	#print(str(maxValue)+" "+str(maxI)+" "+str(maxJ)+" "+str(maxX))
+
+#check if the tapped results give a success notification, if not, re-roll to new captcha
+def checkCaptchaSuccess(whiteBG):
+	image = device.screencap() #take screenshot
+	with open(resource_path('resultCaptcha.png'), 'wb') as f:
+		f.write(image)
+	image = Image.open(resource_path('resultCaptcha.png'))
+	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
+
+	if (checkPixel(0.77,0.55,222,113,91,image) == True):
+		testCaptcha(whiteBG)
+
+def testCaptcha(whiteBG):
+	screenshotOfCaptcha()
+	captchaToObjects()
+	getObj("1")
+	getObj("2")
+	getPuzzleImageFromCaptcha()
+	findObj("1",whiteBG)
+	findObj("2",whiteBG)
+	tap(.8,.6)
+	time.sleep(.5)
+	checkCaptchaSuccess(whiteBG)
 
 def rotate_image(image, angle,whiteBG):
 	image_center = tuple(numpy.array(image.shape[1::-1]) / 2)
@@ -472,7 +542,7 @@ def tap (yPos, xPos):
 	inTap = True
 	winsound.Beep(2500, 200)
 	cmd = 'input touchscreen swipe '+ str(round(xPos*xRes))+ ' '+ str(round(yPos*yRes))+' '+ str(round(xPos*xRes))+' '+ str(round(yPos*yRes))+' 100 '
-	#print (cmd)
+	print (cmd)
 	device.shell(cmd)
 	time.sleep(1)
 	inTap = False
@@ -800,6 +870,9 @@ def update():
 #help(0.67,0.96)
 #threading.Thread(target=farm, args=[]).start()
 #update()
+tap(.16,.85)
+tap(.50,.65)
+time.sleep(2)
 start = time.time()
 testCaptcha(False)
 end = time.time()
