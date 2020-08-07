@@ -19,6 +19,7 @@ from random import randrange
 import tkinter as tk
 import sys
 import imagehash
+from os import system
 from skimage.measure import compare_ssim as ssim
 import matplotlib.pyplot as plt
 from scipy import ndimage
@@ -64,6 +65,7 @@ inEmail = False
 inTap = False
 questionEnded = False
 lookingForQuestion = False
+updating = False
 
 imageG = numpy.zeros((1080, 1920, 4)) #default image holder
 clarionCall = False
@@ -126,7 +128,7 @@ def screenshotOfCaptcha():
 	ran= "captcha.png"
 	#print(ran)
 	im.save(resource_path(ran))
-
+	return
 #opens the captcha png and its info to extract the objects needed to a png
 def captchaToObjects():
 	global obj1FirstXPixel
@@ -175,10 +177,10 @@ def captchaToObjects():
 					obj1FirstXPixel=xLocal-1
 				if (blackOnce == True and newImage[35][xLocal-1][0] != 0.0):
 					#print("ob3 starts") #ob3 start, therefore theres more than 2 objects, re-roll the captcha to find an easier one
+					print("looks like there are too many objects, re-rolling...")
 					tap(.16,.85)
 					tap(.50,.65)
 					time.sleep(6)
-					testCaptcha(False)
 					lookingForQuestion = True
 					return
 				if (obj2LastXPixel != 0):
@@ -203,7 +205,7 @@ def captchaToObjects():
 	obj2LastXPixel = obj2LastXPixel+15
 	obj1FirstXPixel = obj1FirstXPixel-15
 	obj2FirstXPixel = obj2FirstXPixel-15
-
+	return
 #get individual image of one object from the image with the objects
 def getObj(objN):
 
@@ -244,7 +246,7 @@ def getObj(objN):
 	ran= "ob"+objN+".png"
 	#print(ran)
 	im.save(resource_path(ran))
-
+	return
 #In order to get the best result possible, isolate the puzzle image from captcha from all its irrelevand info
 def getPuzzleImageFromCaptcha():
 
@@ -272,7 +274,7 @@ def getPuzzleImageFromCaptcha():
 	randomN = randrange(20)
 	ran= "captchaClean.png"
 	im.save(resource_path(ran))
-
+	return
 #algorithm where the match between the obN.png and the captchaClean.png is found
 def findObj(objN,whiteBG):
 	maxValue=0
@@ -338,7 +340,7 @@ def findObj(objN,whiteBG):
 
 	#print(((py)+(yRes*0.213))/yRes, " ",((px)+(xRes*0.34))/xRes)
 	#print(str(maxValue)+" "+str(maxI)+" "+str(maxJ)+" "+str(maxX))
-
+	return
 #check if the tapped results give a success notification, if not, re-roll to new captcha
 def checkCaptchaSuccess(whiteBG):
 	image = device.screencap() #take screenshot
@@ -346,23 +348,43 @@ def checkCaptchaSuccess(whiteBG):
 		f.write(image)
 	image = Image.open(resource_path('resultCaptcha.png'))
 	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
-
 	if (checkPixel(0.77,0.55,222,113,91,image) == True):
+		#if (checkPixel(0.5194,0.6729,222,113,91,image) != True):
+		tap(.16,.85)
+		tap(.50,.65)
+		time.sleep(6)
 		testCaptcha(whiteBG)
+	return
 
 def testCaptcha(whiteBG):
 	global lookingForQuestion
+	print("screenshoting captcha")
 	screenshotOfCaptcha()
+	print("Extracting objects from captcha")
 	captchaToObjects()
-	if (lookingForQuestion == False):
-		getObj("1")
-		getObj("2")
-		getPuzzleImageFromCaptcha()
-		findObj("1",whiteBG)
-		findObj("2",whiteBG)
-		tap(.8,.6)
-		time.sleep(.5)
-		checkCaptchaSuccess(whiteBG)
+	if (lookingForQuestion == True):
+		lookingForQuestion = False
+		testCaptcha(False)
+		return
+	print("Extracting object 1")
+	getObj("1")
+	print("Extracting object 2")
+	getObj("2")
+	print("Extracting image from captcha")
+	getPuzzleImageFromCaptcha()
+	print("Searching object 1 in image from captcha")
+	findObj("1",whiteBG)
+	print("Searching object 2 in image from captcha")
+	findObj("2",whiteBG)
+	print("Checking if i was successful")
+	tap(.8,.6)
+	checkCaptchaSuccess(whiteBG)
+	return
+	"""tap(.16,.85)
+	tap(.50,.65)
+	time.sleep(6)
+	lookingForQuestion = False
+	testCaptcha(False)"""
 
 def rotate_image(image, angle,whiteBG):
 	image_center = tuple(numpy.array(image.shape[1::-1]) / 2)
@@ -404,7 +426,7 @@ def checkPixel (yPos, xPos, colorR, colorG, colorB, image):
 #farm() aux
 def farmDyn(Xpos):
 	tap(0.75,0.05) #tap magnifying glass
-	tap(0.90,Xpos) #tap cropland
+	#tap(0.90,Xpos) #tap cropland
 	tap(0.70,Xpos) #tap search
 	time.sleep(1)
 	tap(0.50,0.50) #tap deposit
@@ -422,19 +444,31 @@ def farm():
 	time.sleep(0.1)
 	winsound.Beep(2500, 200)
 	inFarm=True
+	"""tap(0.75,0.05) #tap magnifying glass
+	tap(0.9,0.2) #tap magnifying glass"""
+	"""for i in range(12):
+		cmd = 'input touchscreen swipe '+ str(round(.1*xRes))+ ' '+ str(round(.55*yRes))+' '+ str(round(.1*xRes))+' '+ str(round(.55*yRes))+' 10 '
+		#print (cmd)
+		device.shell(cmd)"""
+	#tap(0.5,0.5) #tap magnifying glass
+	"""farmDyn(0.35)
 	farmDyn(0.35)
-	farmDyn(0.35)
 	farmDyn(0.50)
-	farmDyn(0.50)
-	farmDyn(0.50)
+	farmDyn(0.50)"""
+	#farmDyn(0.50)
 	#farmDyn(0.80)
-	#farmDyn(0.65)
-
+	farmDyn(0.65)
+	farmDyn(0.65)
+	farmDyn(0.65)
+	farmDyn(0.65)
 	inFarm=False
 	threading.Thread(target=checkIfArrived, args=[]).start()
 
+#checking if armies arrrived from farming rss
 def checkIfArrived():
+	global updating
 	time.sleep(5)
+	tap(.03,.5)
 	start = time.time()
 	image = device.screencap() #take screenshot
 	with open(resource_path('screen2.png'), 'wb') as f:
@@ -444,9 +478,26 @@ def checkIfArrived():
 	end = time.time()
 	print("It took me: ", str(end - start), "to proccess the image")
 	if (checkPixel(0.25,0.92,8,178,230,image) != True): #if army arrived
+		updating = False
+		tap(.9,0.05)
+		tapFarms()
+		tap(.9,0.05)
+		time.sleep(1)
+		clarionCallAttack()
+		time.sleep(10)
 		threading.Thread(target=farm, args=[]).start()
 	else:
+		update()
 		threading.Thread(target=checkIfArrived, args=[]).start()
+
+#tap town farms to get their rss
+def tapFarms():
+	time.sleep(1)
+	tap(.54,0.38)
+	tap(.63,0.45)
+	tap(.35,0.53)
+	tap(.54,0.60)
+	time.sleep(1)
 
 #change your emails here
 def sendEmail(msg):
@@ -511,14 +562,29 @@ def clarionCallAttack():
 	global updateRunning
 	global inEmail
 	global clarionCall
+	global updating
 
 	print("Started Clarion Call")
 	winsound.Beep(500, 200)
 	time.sleep(0.1)
 	inAttack=True
 	clarionCall = True
+	#updating = True
+
+
 
 	tap(.75,.05) #tap magnifying glass
+	tap(.9,.2) #tap magnifying glass
+
+
+
+	for i in range(12):
+		cmd = 'input touchscreen swipe '+ str(round(.1*xRes))+ ' '+ str(round(.55*yRes))+' '+ str(round(.1*xRes))+' '+ str(round(.55*yRes))+' 10 '
+		#print (cmd)
+		device.shell(cmd)
+
+	for i in range(11):
+		tap(.55,.32)
 	tap(.68,.22) #tap search button
 	time.sleep(1)
 	tap(.5,.5) #tap barb
@@ -540,8 +606,10 @@ def clarionCallAttack():
 	tap(.9,.75) #tap march button
 
 	inAttack=False
-	if(updateRunning == False):
-		update()
+	#update()
+	"""if(updateRunning == False):
+		update()"""
+
 
 #Dynamic tap
 def tap (yPos, xPos):
@@ -549,7 +617,7 @@ def tap (yPos, xPos):
 	inTap = True
 	winsound.Beep(2500, 200)
 	cmd = 'input touchscreen swipe '+ str(round(xPos*xRes))+ ' '+ str(round(yPos*yRes))+' '+ str(round(xPos*xRes))+' '+ str(round(yPos*yRes))+' 100 '
-	print (cmd)
+	#print (cmd)
 	device.shell(cmd)
 	time.sleep(1)
 	inTap = False
@@ -747,10 +815,10 @@ def chooseAnswer(question):
 	print(bcolors.OKBLUE + "\n Question Found with" ,certaintyList[idBestQuestion] ,"accuracy: \n",questions[idBestQuestion],"\n" + bcolors.ENDC)
 	end = time.time()
 	print("It took me: ", str(end - start), "s to find the best question")
-	threading.Thread(target=searchOption, args=[questions[idBestQuestion],answers[idBestQuestion],A,B,D,C]).start() #once found the best question, choose its best option
+	threading.Thread(target=searchOption, args=[question,questions[idBestQuestion],answers[idBestQuestion],A,B,D,C]).start() #once found the best question, choose its best option
 
 #receives an answer from chooseAnswer() and checks which option is the most similar
-def searchOption(bestQuestion, answer,A,B,D,C):
+def searchOption(question,bestQuestion, answer,A,B,D,C):
 	global questionEnded
 	print(bcolors.WARNING  +"\nTrying: ",answer, "\n" + bcolors.ENDC)
 	start = time.time()
@@ -768,7 +836,7 @@ def searchOption(bestQuestion, answer,A,B,D,C):
 	print("It took me: ", str(end - start), "s to find the best option")
 	#if the best option isn't similar enough to the answer, then something went wrong, but the user can still click manually
 	if (bestOption < .6):
-		webbrowser.open('https://www.google.com/search?q='+bestQuestion, new=2)
+		webbrowser.open('https://www.google.com/search?q='+question, new=2)
 		print(bcolors.FAIL +"Im not sure which option is it, but the answer is either ",answer, " or check the google page I opened"+ bcolors.ENDC)
 		questionEnded = True
 	#if the best option is similar enough, tap it prgrammatically
@@ -825,6 +893,161 @@ def lockQuestion():
 		lockQuestion()
 
 	return
+
+def startCaptcha():
+	start = time.time()
+	tap(.16,.85)
+	tap(.50,.65)
+	time.sleep(2)
+	testCaptcha(False)
+	end = time.time()
+	print("It took me: ", str(end - start), "s to find 1 object")
+
+#not working given that the center is always changing
+def goHome():
+	tap(.1,.85)
+	time.sleep(1)
+	tap(0.5,.5)
+	time.sleep(1)
+	tap(0.3,.95)
+	time.sleep(1)
+	cmd = 'input tap '+ str(round(.57*xRes))+ ' '+ str(round(0.67*yRes))
+	#print (cmd)
+	device.shell(cmd)
+	time.sleep(30)
+
+def startFarmBarbs():
+	global updating
+	updating=True
+	update()
+
+#not currently working
+def checkIfInGame():
+	time.sleep(1)
+	if(device.shell("pidof com.lilithgame.roc.gp") == ""):
+		device.shell("monkey -p com.lilithgame.roc.gp 1")
+		#exec(open("rok.py").read())
+		os.system("python rok.py")
+		sys.exit("Error message")
+	threading.Thread(target=checkIfInGame, args=[]).start()
+	return
+
+#multitouch try
+def swipe(xStart,yStart,xEnd,yEnd):
+	threading.Thread(target=swipeAux, args=[xEnd,yEnd]).start()
+	cmd = 'input touchscreen swipe '+ str(round(xStart*0.01*xRes))+ ' '+ str(round(yStart*0.01*yRes))+' '+ str(round(xStart*0.01*xRes))+ ' '+ str(round(yStart*0.01*yRes))+' 500'
+	device.shell(cmd)
+	return
+
+def swipeAux(xEnd,yEnd):
+	time.sleep(0.2)
+	cmd = 'input touchscreen swipe ' + str(round(xEnd)+150)+' '+ str(round(yEnd)+43)+ ' '+str(round(xEnd)+150)+' '+ str(round(yEnd)+43)+ ' 500'
+	device.shell(cmd)
+	return
+
+def startPuzzle():
+
+	img = cv2.imread('completedPuzzle.png', 0)
+	img2 = cv2.imread('completedPuzzle.png', 1)
+	#position of the area of puzzle piece we want to search
+	xEnd = .8755
+	xBeggining = .8469
+	yEnd = .16
+	yBeggining = .114
+
+	for i in range(35):
+		start = time.time()
+		image = device.screencap() #take screenshot
+		#35 puzzle pieces, search for each piece in the puzzleCompleted.png
+		with open(resource_path('puzzleGame.png'), 'wb') as f:
+			f.write(image)
+
+		image = Image.open(resource_path('screengt2.png'))
+		image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
+		xLocal=-1
+		yLocal=-1
+		xTotalPixels = round((xEnd - xBeggining) * xRes)
+		yTotalPixels = round((yEnd - yBeggining) * yRes)
+
+		newImage = numpy.zeros((yTotalPixels, xTotalPixels, 4)) #newImage is the same kind of array of the screenshot's data
+
+
+		#copy every pixel's color in the given coordinates and paste them, in the respective order, in the newImage's data array, starting at 0
+		for x in range(round(xBeggining*xRes), round(xEnd*xRes)-1):
+			xLocal+=1
+			yLocal=0
+			for y in range(round(yBeggining*yRes), round(yEnd*yRes)-1):
+				yLocal+=1
+				#print(xLocal, ",", yLocal, " = ",image[y][x])
+				newImage[yLocal][xLocal] = image[y][x]
+
+		#formating the newImage array to the screenshot's type
+		newImage = numpy.array(newImage, dtype=numpy.uint8)
+		im = Image.fromarray(newImage)
+		ran= "piece"+str(i)+ ".png"
+		#print(ran)
+		im.save(resource_path(ran))
+
+		#35 puzzle pieces, search for each piece in the puzzleCompleted.png
+		template = cv2.imread('piece'+str(i)+'.png', 0)
+		template = cv2.resize(template,(0,0),fx=1.49,fy=1.49, interpolation=cv2.INTER_LINEAR)
+		cv2.imwrite(resource_path(ran),template)
+		w, h = template.shape[::-1]	#width and height of the template
+
+		res = cv2.matchTemplate(img,template,cv2.TM_CCORR_NORMED) #result of the match between the template and the completedPuzzle using TM_CCORR_NORMED method
+		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+
+		top_left = max_loc[0], max_loc[1] #coordinates of the top left corner of the match of the template within the captchaClean
+		bottom_right = (top_left[0] + (w), top_left[1]+ (h))
+		cv2.rectangle(img, top_left, bottom_right, (0, 255, 255), -1) #draw a rectangle on what seems the best match
+		px=round((top_left[0]+bottom_right[0])/2)
+		py=round((top_left[1]+bottom_right[1])/2)
+
+		# Show the final image with the matched area.
+		cv2.imshow('Detected',img)
+		cv2.imshow('template',template)
+		cv2.waitKey(100)
+		#here i attempt to use multitouch in adb (that way i could, theoretically, call an input swipe and a tap at the same time to place the piece in the right position, that way i didn't have to place the piece with the swipe, which has a sort of "ruberband" animation, which produces innacurate placements of the pieces, once it travels to fast)
+		threading.Thread(target=swipe, args=[86,14,px,py]).start()
+		time.sleep(0.7)
+		end = time.time()
+
+		print("It took me: ", str(end - start), "s to find 1 object")
+
+def searchMarauder():
+
+	image = device.screencap() #take screenshot
+	with open(resource_path('screenshotMarauder.png'), 'wb') as f:
+		f.write(image)
+
+	img = cv2.imread('screenshotMarauder.png', 0)
+	img2 = cv2.imread('screenshotMarauder.png', 1)
+
+	template = cv2.imread('marauderIcon.png', 0)
+
+	w, h = template.shape[::-1]	#width and height of the template
+
+	#img3 = img2.copy()
+
+	res = cv2.matchTemplate(img,template,cv2.TM_CCOEFF_NORMED) #result of the match between the template and the captchaClean using TM_CCOEFF_NORMED method
+	min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+
+	top_left = max_loc[0], max_loc[1] #coordinates of the top left corner of the match of the template within the captchaClean
+	#bottom_right = (top_left[0] + (w*2), top_left[1]+ (h*2))
+	bottom_right = (top_left[0] + (w), top_left[1]+ (h))
+	cv2.rectangle(img2, top_left, bottom_right, (0, 255, 255), -1) #draw a rectangle on what seems the best match
+	px=round((top_left[0]+bottom_right[0])/2)
+	#px=px-((1440-px)*0.3)
+	#py=round((top_left[1]+bottom_right[1])/2*1.4)
+	py=round((top_left[1]+bottom_right[1])/2)
+	#print("oiii", str(px))
+	# Show the final image with the matched area.
+	print(px)
+	tap(py/1080,px/1920)
+	cv2.imshow('Detected',img2)
+	cv2.imshow('template',template)
+	cv2.waitKey(100)
+
 #every 1s take a screenshot and analyse it
 def update():
 	global inAttack
@@ -835,6 +1058,7 @@ def update():
 	global nHelps
 	global nIterations
 	global window
+	global updating
 
 	time.sleep(2)
 	inEmail = False
@@ -852,12 +1076,16 @@ def update():
 	print("\n Iteration number: ", nIterations)
 	print ("\n Thread Count: ", threading.active_count())
 	print ("\n Helps: ", nHelps)
+	print ("\n New text color: ", image[round(0.7681*yRes)][round(0.5*xRes)], " and ", checkPixel(0.7681,0.5,251,146,146,image))
 	print ("\n New victory cords: ", image[round(0.7597*yRes)][round(0.7979*xRes)], " and ", image[round(0.77*yRes)][round(0.7631*xRes)], " and ", checkPixel(0.7713,0.8001,251,146,146,image))
 	print ("\n New defeat cords: ", image[round(0.7726*yRes)][round(0.7616*xRes)], " and ", image[round(0.7713*yRes)][round(0.8001*xRes)])
 	print ("\n New CAPTCHA cords: ", image[round(0.1938*yRes)][round(0.8147*xRes)], " and ", image[round(0.1938*yRes)][round(0.8321*xRes)], " and ", image[round(0.1343*yRes)][round(0.8692*xRes)])
 	print ("\n New AP cords: ", image[round(0.5633*yRes)][round(0.2296*xRes)], " and ", image[round(0.1938*yRes)][round(0.8321*xRes)])
+	if (checkPixel(0.6343,0.9804,230,0,0,image) == True and inTap == False): #if theres a alliance help request
+		tap(0.67,0.96)
+		nHelps = nHelps + 1
 	#print ("\n color of the victory/defeat notification pixel: ", image[830][1467] , " \n color of a pixel of the 0AP pop-up: " , image[round(0.8*yRes)][round(0.8*xRes)] , " \n color of the position where the CAPTCHA notification pops-up " , image[round(0.1938*yRes)][round(0.8321*xRes)] , " \n color of the position where the help notification pops-up " , image[round(0.6343*yRes)][round(0.9804*xRes)] , "\n --------------------------------------------------------------------------")
-	if (checkPixel(0.1938,0.8147,251,252,251,image) == True and checkPixel(0.1938,0.8321,230,230,235,image) == True and checkPixel(0.1343,0.8692,230,0,0,image) == True and inEmail == False): #if theres a CAPTCHA
+	if (updating == False and checkPixel(0.1938,0.8147,251,252,251,image) == True and checkPixel(0.1938,0.8321,230,230,235,image) == True and checkPixel(0.1343,0.8692,230,0,0,image) == True and inEmail == False): #if theres a CAPTCHA
 		print(" I think there's a CAPTCHA")
 		tap(.16,.85)
 		tap(.50,.65)
@@ -867,48 +1095,55 @@ def update():
 	elif (checkPixel(0.5633,0.2296,255,166,58,image) == True and checkPixel(0.1938,0.8321,0,73,107,image) == True  and inEmail == False ): #if no action points
 		print (" I think you have no action points")
 		sendEmail("NO ACTION POINTS")
+		updating = False
+		goHome()
 	elif (checkPixel(0.7726,0.7616,254,143,144,image) == True and checkPixel(0.7713,0.8001,251,146,146,image) == True and inReset == False): #if defeat notification
 		reset()
 	elif (checkPixel(0.7597,0.7979,27,169,49,image) == True and checkPixel(0.77,0.7631,8,162,33,image) == True and inAttack == False): #if victory notification
-		if (clarionCall == True):
+		"""if (clarionCall == True):
 			reset()
-		elif (clarionCall == False):
-			attack()
+		elif (clarionCall == False):"""
+		attack()
 	"""elif (checkPixel(0.6343,0.9804,230,0,0,image) == True and inTap == False): #if theres a alliance help request
 		tap(0.67,0.96)
 		nHelps = nHelps + 1"""
+	if (updating == True):
+		update()
 	window.update()
-	threading.Thread(target=update, args=[]).start()
-
+	#threading.Thread(target=update, args=[]).start()
 #clarionCallAttack()
 #help(0.67,0.96)
 #threading.Thread(target=farm, args=[]).start()
 #update()
-
-start = time.time()
-
+#checkIfArrived()
+#goHome()
+searchMarauder()
+#startPuzzle()
+"""start = time.time()
+tap(.16,.85)
+tap(.50,.65)
+time.sleep(6)
+testCaptcha(False)
 end = time.time()
-print("It took me: ", str(end - start), "s to find 1 object")
-
-
-
-
-
-
-
-
+print("It took me: ", str(end - start), "s to find 1 object")"""
 #graphical interface initializations
 window = tk.Tk()
+searchMarauderBtn = tk.Button(text="searchMarauder", command=searchMarauder)
+searchMarauderBtn.pack()
 clarionCallBtn = tk.Button(text="Clerion Call", command=clarionCallAttack)
 clarionCallBtn.pack()
+startPuzzleBtn = tk.Button(text="Start Puzzle", command=startPuzzle)
+startPuzzleBtn.pack()
 farmBtn = tk.Button(text="Farm RSS", command=farm)
 farmBtn.pack()
-farmBarbsBtn = tk.Button(text="Farm Barbs", command=update)
+farmBarbsBtn = tk.Button(text="Farm Barbs", command=startFarmBarbs)
 farmBarbsBtn.pack()
 lyceumBtn = tk.Button(text="Lyceum Preliminary", command=lyceumP)
 lyceumBtn.pack()
 lyceumMidtermBtn = tk.Button(text="Lyceum Midterm/finals", command=lyceumM)
 lyceumMidtermBtn.pack()
+startCaptchaBtn = tk.Button(text="Captcha", command=startCaptcha)
+startCaptchaBtn.pack()
 window.mainloop()
 """menuInput = input('\n1) Attack First time\n2) Run farming bot\n3) Run barbarian Bot\n4) Run Lyceum Bot \n5) Run Lyceum midterm Bot \n6) Clarion Call Bot \n')
 if (menuInput == "1"):
