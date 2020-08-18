@@ -25,6 +25,7 @@ import matplotlib.pyplot as plt
 from scipy import ndimage
 import pprint
 import webbrowser
+import pyautogui
 #Create folder if doesnt exist
 try:
     os.makedirs('screenshots')
@@ -84,8 +85,7 @@ yRes = 1080
 
 getTextFromImageQueue=queue.Queue() #queue storing values from threads (equivalent to a queue of return var from functions)
 
-#start adb device
-adb = Client(host='127.0.0.1', port=5037)
+adb = Client(host='localhost', port=5037)
 devices = adb.devices()
 if len(devices) == 0:
     print('no device attached')
@@ -524,7 +524,7 @@ def checkHopital():
 	image = Image.open(resource_path('screen2.png'))
 	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
 	print("waiting for healing: ", image[round(0.25*yRes)][round(0.92*xRes)])
-	if (checkPixel(0.61,0.90,114,46,15,image) == True and checkPixel(0.25,0.92,8,178,230,image) != True): #if army arrived and troops healed/ready to collect
+	if (checkPixel(0.25,0.92,8,178,230,image) != True): #if army arrived and troops healed/ready to collect
 		tap(0.61,0.90) #collect healed troops
 		tap(.9,.05) #tap map
 		clarionCallAttack()
@@ -544,8 +544,9 @@ def reset():
 
 	device.shell(f'input touchscreen swipe 50 950 50 950 200')  #tap city
 	time.sleep(2)
-	tap(.56,.92)#tap red cross
+	tap(.57,.9)#tap red cross
 	time.sleep(2)
+	#tap(.57,.9)
 	device.shell(f'input touchscreen swipe 1440 864 1440 864 100 ')  #tap heal button
 	time.sleep(2)
 	device.shell(f'input touchscreen swipe 1755 630 1755 630 100 ')  #tap ask help healing
@@ -569,7 +570,7 @@ def clarionCallAttack():
 	time.sleep(0.1)
 	inAttack=True
 	clarionCall = True
-	#updating = True
+	updating = True
 
 
 
@@ -578,25 +579,25 @@ def clarionCallAttack():
 
 
 
-	for i in range(12):
+	"""for i in range(12):
 		cmd = 'input touchscreen swipe '+ str(round(.1*xRes))+ ' '+ str(round(.55*yRes))+' '+ str(round(.1*xRes))+' '+ str(round(.55*yRes))+' 10 '
 		#print (cmd)
-		device.shell(cmd)
+		device.shell(cmd)"""
 
-	for i in range(11):
-		tap(.55,.32)
+	"""for i in range(11):
+		tap(.55,.32)"""
 	tap(.68,.22) #tap search button
-	time.sleep(1)
+	time.sleep(2)
 	tap(.5,.5) #tap barb
-
+	time.sleep(1)
 	image = device.screencap() #take screenshot
 	with open(resource_path('screen2.png'), 'wb') as f:
 		f.write(image)
 	image = Image.open(resource_path('screen2.png'))
 	image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
 
-
-	if (checkPixel(0.66,0.66,230,60,50,image) == None): # if red button doesnt "attack" appear
+	print(image[round(0.65*yRes)][round(0.65*xRes)])
+	if (checkPixel(0.65,0.65,230,60,50,image) == None): # if red button doesnt "attack" appear
 		clarionCallAttack()
 
 	tap(.70,.75) #tap attack button
@@ -606,7 +607,8 @@ def clarionCallAttack():
 	tap(.9,.75) #tap march button
 
 	inAttack=False
-	#update()
+	#reset()
+	update()
 	"""if(updateRunning == False):
 		update()"""
 
@@ -616,10 +618,10 @@ def tap (yPos, xPos):
 	global inTap
 	inTap = True
 	winsound.Beep(2500, 200)
-	cmd = 'input touchscreen swipe '+ str(round(xPos*xRes))+ ' '+ str(round(yPos*yRes))+' '+ str(round(xPos*xRes))+' '+ str(round(yPos*yRes))+' 100 '
+	cmd = 'input touchscreen swipe '+ str(round(xPos*xRes))+ ' '+ str(round(yPos*yRes))+' '+ str(round(xPos*xRes))+' '+ str(round(yPos*yRes))+' 10 '
 	#print (cmd)
 	device.shell(cmd)
-	time.sleep(1)
+	time.sleep(.1)
 	inTap = False
 
 #if there's a victory, find and attack new barb
@@ -1014,8 +1016,8 @@ def startPuzzle():
 
 		print("It took me: ", str(end - start), "s to find 1 object")
 
-def searchMarauder():
-
+def searchMarauderAux():
+	time.sleep(1)
 	image = device.screencap() #take screenshot
 	with open(resource_path('screenshotMarauder.png'), 'wb') as f:
 		f.write(image)
@@ -1031,6 +1033,13 @@ def searchMarauder():
 
 	res = cv2.matchTemplate(img,template,cv2.TM_CCOEFF_NORMED) #result of the match between the template and the captchaClean using TM_CCOEFF_NORMED method
 	min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+	print("max ",max_val)
+
+	if (max_val < .8):
+		cmd = 'input touchscreen swipe  800 700 800 200 500'
+		device.shell(cmd)
+		searchMarauderAux()
+		return
 
 	top_left = max_loc[0], max_loc[1] #coordinates of the top left corner of the match of the template within the captchaClean
 	#bottom_right = (top_left[0] + (w*2), top_left[1]+ (h*2))
@@ -1042,12 +1051,117 @@ def searchMarauder():
 	py=round((top_left[1]+bottom_right[1])/2)
 	#print("oiii", str(px))
 	# Show the final image with the matched area.
-	print(px)
 	tap(py/1080,px/1920)
 	cv2.imshow('Detected',img2)
 	cv2.imshow('template',template)
 	cv2.waitKey(100)
+	time.sleep(1)
+	attackMarauder()
+	return
+def searchMarauder():
+	for i in range (4):
+		time.sleep(1)
+		zoomOut()
+		time.sleep(1)
+		searchMarauderAux()
+	return
 
+def attackMarauder():
+	cmd = 'input touchscreen swipe  800 500 850 500 500'
+	device.shell(cmd)
+	tap(.5,.5) #tap marauder
+	tap(.6,.3) #tap attack Button
+	tap(.20,.80) #tap new troops button
+	tap(.9,.75) #tap march button
+
+def zoomOut():
+	pyautogui.keyDown('down')
+	time.sleep(0.5)
+	pyautogui.keyUp('down')
+
+def makeTroops():
+	tap(.5,.5) #barraks
+	tap(.6,.6) #button troops
+	#tap(.25,.55) #tier 2
+	tap(.25,.65) #tier 3
+	tap(.25,.17) #upgrade
+	tap(.8,.7) #upgrade button
+	tap(.5,.5) #barraks
+	tap(.7,.5) #button speed up
+	tap(.5,.75) #5m use speeed up
+	tap(.53,.60) #5m stack speed ups
+
+	tap(.35,.75) #1mnt speed up
+	tap(.35,.60) #1mnt speed up stack
+	tap(.35,.75) #1mnt speed up
+
+	tap(.39,.50) #1mnt speed up
+	makeTroops()
+
+def getImagePls():
+	for i in range (10000):
+		xEnd = .13
+		xBeggining = .06
+		yEnd = .905
+		yBeggining = .875
+		image = device.screencap() #take screenshot
+		with open(resource_path('screenPls.png'), 'wb') as f:
+			f.write(image)
+
+		image = Image.open(resource_path('screenPls.png'))
+		image = numpy.array(image, dtype=numpy.uint8) #get screenshot data in rgba
+		xLocal=-1
+		yLocal=-1
+		xTotalPixels = round((xEnd - xBeggining) * xRes)
+		yTotalPixels = round((yEnd - yBeggining) * yRes)
+
+		newImage = numpy.zeros((yTotalPixels, xTotalPixels, 4)) #newImage is the same kind of array of the screenshot's data
+
+
+		#copy every pixel's color in the given coordinates and paste them, in the respective order, in the newImage's data array, starting at 0
+		for x in range(round(xBeggining*xRes), round(xEnd*xRes)-1):
+			xLocal+=1
+			yLocal=0
+			for y in range(round(yBeggining*yRes), round(yEnd*yRes)-1):
+				yLocal+=1
+				#print(xLocal, ",", yLocal, " = ",image[y][x])
+				newImage[yLocal][xLocal] = image[y][x]
+
+		#formating the newImage array to the screenshot's type
+		newImage = numpy.array(newImage, dtype=numpy.uint8)
+		im = Image.fromarray(newImage)
+		ran= "screenPlsClean.png"
+		#print(ran)
+		im.save(resource_path(ran))
+		img = cv2.imread(resource_path(ran),0)
+		retval, img = cv2.threshold(img, 215,250, cv2.THRESH_BINARY)
+		#img = cv2.bitwise_not(img) #invert colors, so tess can read it black on white (other way around gives much more innacurate results)
+		img = cv2.resize(img,(0,0),fx=3,fy=3, interpolation=cv2.INTER_CUBIC) #scaling up helps with accuracy
+		#Blurring edges makes them less sharp, tess likes that
+		img = cv2.GaussianBlur(img,(11,11),0)
+		img = cv2.medianBlur(img,5)
+		cv2.imshow('template',img)
+		cv2.waitKey(1)
+		#cv2.imshow('asd',img)
+		#cv2.waitKey(0)
+		#cv2.destroyAllWindows()
+		content = tess.image_to_string(img, lang='eng')
+		#print(content)
+		if ("pls"  in content.lower() or "plz"  in content.lower() or "please"  in content.lower()):
+			print("oi")
+			device.shell(f'input touchscreen swipe 300 600 300 500 500')  #tap city
+			tap(.65,.10)
+			#do stuff
+			time.sleep(10)
+			tap(.95,.115)
+		else:
+			device.shell(f'input touchscreen swipe 300 600 300 570 500')  #tap city
+		#time.sleep(2)
+		"""if ("pls" or "plz" or "please" in content.lower()):
+			tap(.75,.10)
+			#do stuff
+			time.sleep(10)
+			tap(.95,.115)"""
 #every 1s take a screenshot and analyse it
 def update():
 	global inAttack
@@ -1100,10 +1214,10 @@ def update():
 	elif (checkPixel(0.7726,0.7616,254,143,144,image) == True and checkPixel(0.7713,0.8001,251,146,146,image) == True and inReset == False): #if defeat notification
 		reset()
 	elif (checkPixel(0.7597,0.7979,27,169,49,image) == True and checkPixel(0.77,0.7631,8,162,33,image) == True and inAttack == False): #if victory notification
-		"""if (clarionCall == True):
+		if (clarionCall == True):
 			reset()
-		elif (clarionCall == False):"""
-		attack()
+		elif (clarionCall == False):
+			attack()
 	"""elif (checkPixel(0.6343,0.9804,230,0,0,image) == True and inTap == False): #if theres a alliance help request
 		tap(0.67,0.96)
 		nHelps = nHelps + 1"""
@@ -1117,7 +1231,7 @@ def update():
 #update()
 #checkIfArrived()
 #goHome()
-searchMarauder()
+#searchMarauder()
 #startPuzzle()
 """start = time.time()
 tap(.16,.85)
@@ -1128,6 +1242,10 @@ end = time.time()
 print("It took me: ", str(end - start), "s to find 1 object")"""
 #graphical interface initializations
 window = tk.Tk()
+getImagePlsBtn = tk.Button(text="getImagePls", command=getImagePls)
+getImagePlsBtn.pack()
+makeTroopsBtn = tk.Button(text="makeTroops", command=makeTroops)
+makeTroopsBtn.pack()
 searchMarauderBtn = tk.Button(text="searchMarauder", command=searchMarauder)
 searchMarauderBtn.pack()
 clarionCallBtn = tk.Button(text="Clerion Call", command=clarionCallAttack)
