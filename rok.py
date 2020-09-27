@@ -20,7 +20,6 @@ import tkinter as tk
 import sys
 import imagehash
 from os import system
-from skimage.measure import compare_ssim as ssim
 import matplotlib.pyplot as plt
 from scipy import ndimage
 import pprint
