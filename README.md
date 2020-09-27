@@ -4,7 +4,7 @@ Rise of Kingdoms multi-functionalities bot
 ## Requirements
 - ADB
 - Python
-- Install with pip necessary imports
+- Install with pip : pure-python-adb, pillow, numpy, yagmail, pytesseract, opencv-python, imagehash, scikit-image and pyautogui.
 - Enable adb on your device (even on emulators)
 - install tesseract and change to your path inside rok.py (follow AllTech's tutorial: https://youtu.be/4DrCIVS5U3Y)
 
