@@ -1,6 +1,9 @@
 # ROKBOT
 Rise of Kingdoms multi-functionalities bot
 
+# SETUP
+- https://youtu.be/8QPfjsv73X8
+
 ## Requirements
 - ADB
 - Python
