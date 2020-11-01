@@ -1,3 +1,5 @@
+# Bot development halted for now (but it's still usable)
+
 # ROKBOT
 Rise of Kingdoms multi-functionalities bot
 
