@@ -1,4 +1,5 @@
 # Bot development halted for now (but it's still usable)
+It seems it's not clear enough, but this bot is a personal project, not for commercial use, you have to tweak it yourself, I just give you enough information about it so you can setup and tweak/develop it yourself.
 
 # ROKBOT
 Rise of Kingdoms multi-functionalities bot
