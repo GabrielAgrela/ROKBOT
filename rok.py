@@ -16,10 +16,15 @@ except ImportError:
 else:
     def playsound(frequency,duration):
 					winsound.Beep(frequency,duration)
+
 import pytesseract as tess
+from sys import platform
 #tess.pytesseract.tesseract_cmd = input('Tessaract path:')
-tess.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
-import os
+if platform == "win32":
+    tess.pytesseract.tesseract_cmd = r'E:\ac\tesseract.exe'
+else:
+    tess.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
+
 from difflib import SequenceMatcher
 import time
 import cv2
@@ -27,6 +32,7 @@ from random import randrange
 import tkinter as tk
 import sys
 import imagehash
+import os
 from os import system
 import matplotlib.pyplot as plt
 from scipy import ndimage
