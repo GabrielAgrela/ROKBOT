@@ -7,11 +7,24 @@ import time
 import threading, queue
 import yagmail
 import random
-import winsound
+try:
+    import winsound
+except ImportError:
+    import os
+    def playsound(frequency,duration):
+					print("\a")
+else:
+    def playsound(frequency,duration):
+					winsound.Beep(frequency,duration)
+
 import pytesseract as tess
+from sys import platform
 #tess.pytesseract.tesseract_cmd = input('Tessaract path:')
-tess.pytesseract.tesseract_cmd = r'E:\ac\tesseract.exe'
-import os
+if platform == "win32":
+    tess.pytesseract.tesseract_cmd = r'E:\ac\tesseract.exe'
+else:
+    tess.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'
+
 from difflib import SequenceMatcher
 import time
 import cv2
@@ -19,6 +32,7 @@ from random import randrange
 import tkinter as tk
 import sys
 import imagehash
+import os
 from os import system
 import matplotlib.pyplot as plt
 from scipy import ndimage
@@ -437,11 +451,11 @@ def farmDyn(Xpos):
 def farm():
 	global inFarm
 	print(" Preparing Farmers")
-	winsound.Beep(500, 200)
+	playsound(500, 200)
 	time.sleep(0.1)
-	winsound.Beep(500, 200)
+	playsound(500, 200)
 	time.sleep(0.1)
-	winsound.Beep(2500, 200)
+	playsound(2500, 200)
 	inFarm=True
 	"""tap(0.75,0.05) #tap magnifying glass
 	tap(0.9,0.2) #tap magnifying glass"""
@@ -503,11 +517,11 @@ def sendEmail(msg):
 	global inEmail
 	inEmail = True
 	print ("sending email with ", msg, " as body.")
-	winsound.Beep(2500, 200)
+	playsound(2500, 200)
 	time.sleep(0.1)
-	winsound.Beep(500, 200)
+	playsound(500, 200)
 	time.sleep(0.1)
-	winsound.Beep(2500, 200)
+	playsound(2500, 200)
 	yag = yagmail.SMTP("ithrowthisaway1233321", '123456123456Aa')
 	yag.send("gabrielagrela99@gmail.com", "RISE OF KINGDOMS", msg)
 	#sleeptTime = random.randint(0, 90)
@@ -536,9 +550,9 @@ def reset():
 	global inReset
 	global inEmail
 	print("healing")
-	winsound.Beep(500, 200)
+	playsound(500, 200)
 	time.sleep(0.1)
-	winsound.Beep(2500, 200)
+	playsound(2500, 200)
 	inReset = True
 
 	device.shell(f'input touchscreen swipe 50 950 50 950 200')  #tap city
@@ -565,7 +579,7 @@ def clarionCallAttack():
 	global updating
 
 	print("Started Clarion Call")
-	winsound.Beep(500, 200)
+	playsound(500, 200)
 	time.sleep(0.1)
 	inAttack=True
 	clarionCall = True
@@ -616,7 +630,7 @@ def clarionCallAttack():
 def tap (yPos, xPos):
 	global inTap
 	inTap = True
-	winsound.Beep(2500, 200)
+	playsound(2500, 200)
 	cmd = 'input touchscreen swipe '+ str(round(xPos*xRes))+ ' '+ str(round(yPos*yRes))+' '+ str(round(xPos*xRes))+' '+ str(round(yPos*yRes))+' 10 '
 	#print (cmd)
 	device.shell(cmd)
@@ -629,9 +643,9 @@ def attack():
 	global inEmail
 
 	print(" preparing attack")
-	winsound.Beep(500, 200)
+	playsound(500, 200)
 	time.sleep(0.1)
-	winsound.Beep(500, 200)
+	playsound(500, 200)
 
 	inAttack=True
 	device.shell(f'input touchscreen swipe 50 820 50 820 200')#tap magnifying glass
