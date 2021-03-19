@@ -65,3 +65,7 @@ Rise of Kingdoms multi-functionalities bot
 - Graphical interface;
 - Update README with farm functionality example;
 - Update README with lyceum functionality example; - DONE
+
+## Base Layout
+
+<img src="/media/baseLayout.png?raw=true" width="800px">
